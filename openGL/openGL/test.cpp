@@ -10,6 +10,7 @@
 #include "camera.h"
 #include "texture.h"
 #include "cube.h"
+#include "audio_manager.h"
 
 using namespace std;
 

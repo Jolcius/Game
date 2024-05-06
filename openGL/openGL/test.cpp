@@ -110,6 +110,8 @@ int main()
     cube2->setVelocity(glm::vec3(1, 0, 0));
     objects.push_back(*cube2);
 
+    camera.MovementSpeed = 10.f;
+
     // 渲染循环
     while (!glfwWindowShouldClose(window))
     {
@@ -137,6 +139,7 @@ int main()
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
         
         glBindVertexArray(VAO);
+        //camera.SwitchMode(FREE);
         
         // 画出Objects
         for (auto &obj : objects)
@@ -225,4 +228,14 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    // 鼠标输入
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+        camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, 0), true, deltaTime);
+    else
+        camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, 0), false, deltaTime);
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+        camera.ProcessMouseInput(M_RIGHT, glm::vec3(0, 0, 0), true, deltaTime);
+    else
+        camera.ProcessMouseInput(M_RIGHT, glm::vec3(0, 0, 0), false, deltaTime);
 }

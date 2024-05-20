@@ -92,24 +92,50 @@ int main()
     
     // 创建纹理
     Texture* cube_tex = new Texture("textures/container.jpg");
+    Texture* senpai_tex = new Texture("textures/senpai.jpg");
+    Texture* wall_tex = new Texture("textures/wall.jpg");
+    Texture* ceiling_tex = new Texture("textures/ceiling.jpg");
 
     glEnable(GL_DEPTH_TEST);
 
     // 全局物体
     vector<Cube> objects;
 
-    glm::vec3 pos1 = glm::vec3(1, 3, -2);
-    Cube* cube1 = new Cube(pos1);
-    cube1->setTexture(*cube_tex);
-    cube1->setColor(glm::vec4(1, 0, 0, 1));
-    objects.push_back(*cube1);
+    // 地面和天花板
+    glm::vec3 ground_pos = glm::vec3(0, -1.5, -10);
+    Cube* ground = new Cube(ground_pos);
+    ground->setTexture(*cube_tex);
+    ground->setScale(glm::vec3(3, 0, 20));
+    objects.push_back(*ground);
+    Cube* ceiling = new Cube(glm::vec3(0, 1.5, -10));
+    ceiling->setTexture(*ceiling_tex);
+    ceiling->setScale(glm::vec3(3, 0, 20));
+    objects.push_back(*ceiling);
 
-    glm::vec3 pos2 = glm::vec3(0, 0, 0);
-    Cube* cube2 = new Cube(pos2);
-    cube2->setScale(glm::vec3(1, 1, 0));
-    cube2->setTexture(*cube_tex);
-    cube2->setVelocity(glm::vec3(1, 0, 0));
-    objects.push_back(*cube2);
+    // 墙壁
+    Cube* wall_1 = new Cube(glm::vec3(1.5, 0, -10));
+    wall_1->setScale(glm::vec3(0, 3, 20));
+    wall_1->setTexture(*wall_tex);
+    objects.push_back(*wall_1);
+    Cube* wall_2 = new Cube(glm::vec3(-1.5, 0, -10));
+    wall_2->setScale(glm::vec3(0, 3, 20));
+    wall_2->setTexture(*wall_tex);
+    objects.push_back(*wall_2);
+    Cube* wall_3 = new Cube(glm::vec3(0, 0, -20));
+    wall_3->setScale(glm::vec3(3, 3, 0));
+    wall_3->setTexture(*wall_tex);
+    objects.push_back(*wall_3);
+
+    // 掩体
+    Cube* shelter_1 = new Cube(glm::vec3(0, -1, -2));
+    shelter_1->setTexture(*cube_tex);
+    objects.push_back(*shelter_1);
+    Cube* shelter_2 = new Cube(glm::vec3(-1, -1, -2));
+    shelter_2->setTexture(*cube_tex);
+    objects.push_back(*shelter_2);
+    Cube* shelter_3 = new Cube(glm::vec3(1, -1, -2));
+    shelter_3->setTexture(*cube_tex);
+    objects.push_back(*shelter_3);
 
     camera.MovementSpeed = 10.f;
 

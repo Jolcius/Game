@@ -124,7 +124,7 @@ public:
             // 更新摄像机前/右/上向量
             updateCameraVectors();
         }
-        else if (mode == STATIC && _isAiming)
+        else if (mode == STATIC && _isAiming && !_viewLock)
         {
             xoffset *= MouseSensitivity;
             yoffset *= MouseSensitivity;
@@ -132,14 +132,14 @@ public:
             Yaw += xoffset;
             Pitch += yoffset;
 
-            if (Pitch > 89.0f)
-                Pitch = 89.0f;
-            if (Pitch < -89.0f)
-                Pitch = -89.0f;
-            if (Yaw > 89.0f)
-                Yaw = 89.0f;
-            if (Yaw < -89.0f)
-                Yaw = -89.0f;
+            if (Pitch > 30.f)
+                Pitch = 30.f;
+            if (Pitch < -30.f)
+                Pitch = -30.f;
+            if (Yaw > -45.f)
+                Yaw = -45.f;
+            if (Yaw < -135.f)
+                Yaw = -135.f;
 
             updateCameraVectors();
         }
@@ -167,13 +167,31 @@ public:
             {
                 _isAiming = down;
                 glm::vec3 dir = target - Original_Pos;
-                if (down && glm::distance(target, Position) > 0.01f)
+                if (down)
                 {
-                    Position += dir * MovementSpeed * deltaTime;
+                    if (glm::distance(target, Position) > 0.01f)
+                    {
+                        Position += dir * MovementSpeed * deltaTime;
+                        _viewLock = true;
+                    }
+                    else
+                    {
+                        _viewLock = false;
+                    }
                 }
-                if (!down && glm::distance(Original_Pos, Position) > 0.01f)
+                if (!down)
                 {
-                    Position -= dir * MovementSpeed * deltaTime;
+                    if (glm::distance(Original_Pos, Position) > 0.01f)
+                    {
+                        Position -= dir * MovementSpeed * deltaTime;
+                        _viewLock = true;
+                    }
+                    else
+                    {
+                        Yaw = -90.f;
+                        Pitch = 0;
+                        updateCameraVectors();
+                    }
                 }
             }
             if (btn == M_LEFT)      // 左键射击
@@ -192,6 +210,7 @@ public:
 private:
 
     bool _isAiming;
+    bool _viewLock;
 
     void updateCameraVectors()
     {

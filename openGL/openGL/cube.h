@@ -53,7 +53,7 @@ static float vertices[] = {
 
 class Cube
 {
-private:
+protected:
     glm::vec3 position;     // Î»ÖÃ
     glm::vec3 rotation;     // Ðý×ª
     glm::vec3 localScale;   // Ëõ·Å
@@ -81,6 +81,13 @@ public:
     unsigned int getTexture() { return texture.getTexture(); }
     glm::vec4 getColor() { return color; }
     glm::vec3 getVelocity() { return velocity; }
+
+    bool operator==(Cube cube)
+    {
+        return cube.getPos() == position && cube.getRot() == rotation && cube.getScale() == localScale;
+    }
+
+    bool _delete = false;
 };
 
 #endif

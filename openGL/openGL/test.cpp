@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 #include "shader.h"
 #include "camera.h"
@@ -14,12 +15,13 @@
 
 using namespace std;
 
-const int SCR_WIDTH = 800, SCR_HEIGHT = 600;
+const int SCR_WIDTH = 600, SCR_HEIGHT = 600;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
+void remove_object(Cube* cube);
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
@@ -35,6 +37,9 @@ unsigned int EBO;
 
 unsigned int vertexShader;
 unsigned int fragmentShader;
+
+// 全局物体
+vector<Cube*> objects;
 
 int main()
 {
@@ -61,7 +66,7 @@ int main()
         return -1;
     }
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -98,44 +103,41 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    // 全局物体
-    vector<Cube> objects;
-
     // 地面和天花板
     glm::vec3 ground_pos = glm::vec3(0, -1.5, -10);
     Cube* ground = new Cube(ground_pos);
     ground->setTexture(*cube_tex);
     ground->setScale(glm::vec3(3, 0, 20));
-    objects.push_back(*ground);
+    objects.push_back(ground);
     Cube* ceiling = new Cube(glm::vec3(0, 1.5, -10));
     ceiling->setTexture(*ceiling_tex);
     ceiling->setScale(glm::vec3(3, 0, 20));
-    objects.push_back(*ceiling);
+    objects.push_back(ceiling);
 
     // 墙壁
     Cube* wall_1 = new Cube(glm::vec3(1.5, 0, -10));
     wall_1->setScale(glm::vec3(0, 3, 20));
     wall_1->setTexture(*wall_tex);
-    objects.push_back(*wall_1);
+    objects.push_back(wall_1);
     Cube* wall_2 = new Cube(glm::vec3(-1.5, 0, -10));
     wall_2->setScale(glm::vec3(0, 3, 20));
     wall_2->setTexture(*wall_tex);
-    objects.push_back(*wall_2);
+    objects.push_back(wall_2);
     Cube* wall_3 = new Cube(glm::vec3(0, 0, -20));
     wall_3->setScale(glm::vec3(3, 3, 0));
     wall_3->setTexture(*wall_tex);
-    objects.push_back(*wall_3);
+    objects.push_back(wall_3);
 
     // 掩体
     Cube* shelter_1 = new Cube(glm::vec3(0, -1, -2));
     shelter_1->setTexture(*cube_tex);
-    objects.push_back(*shelter_1);
+    objects.push_back(shelter_1);
     Cube* shelter_2 = new Cube(glm::vec3(-1, -1, -2));
     shelter_2->setTexture(*cube_tex);
-    objects.push_back(*shelter_2);
+    objects.push_back(shelter_2);
     Cube* shelter_3 = new Cube(glm::vec3(1, -1, -2));
     shelter_3->setTexture(*cube_tex);
-    objects.push_back(*shelter_3);
+    objects.push_back(shelter_3);
 
     camera.MovementSpeed = 10.f;
 
@@ -166,48 +168,63 @@ int main()
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
         
         glBindVertexArray(VAO);
-        //camera.SwitchMode(FREE);
         
         // 画出Objects
         for (auto &obj : objects)
         {
             // 绑定纹理
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, obj.getTexture());
+            glBindTexture(GL_TEXTURE_2D, obj->getTexture());
 
             glm::mat4 model;
-            model = glm::translate(model, obj.getPos());
-            model = glm::rotate(model, glm::radians(obj.getRot().x), glm::vec3(1.0f, 0.0f, 0.0f));
-            model = glm::rotate(model, glm::radians(obj.getRot().y), glm::vec3(0.0f, 1.0f, 0.0f));
-            model = glm::rotate(model, glm::radians(obj.getRot().z), glm::vec3(0.0f, 0.0f, 1.0f));
-            model = glm::scale(model, obj.getScale());
+            model = glm::translate(model, obj->getPos());
+            model = glm::rotate(model, glm::radians(obj->getRot().x), glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(obj->getRot().y), glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(obj->getRot().z), glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::scale(model, obj->getScale());
 
             // 向顶点着色器输入model矩阵
             int modelLoc = glGetUniformLocation(shader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
             // 向片段着色器输入颜色
-            glm::vec4 color = obj.getColor();
+            glm::vec4 color = obj->getColor();
             int colorLoc = glGetUniformLocation(shader.ID, "color");
             glUniform4f(colorLoc, color.x, color.y, color.z, color.w);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
             // 处理物体移动
-            obj.setPos(obj.getPos() + obj.getVelocity() * deltaTime);
+            obj->setPos(obj->getPos() + obj->getVelocity() * deltaTime);
+        }
+
+        // 处理Objects删除
+        for (auto &obj : objects)
+        {
+            if (obj->_delete)
+            {
+                remove_object(obj);
+                break;
+            }
         }
 
         // 交换缓冲，调用事件
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
+    
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
 
     glfwTerminate();
     return 0;
+}
+
+void remove_object(Cube* cube)
+{
+    objects.erase(remove_if(objects.begin(), objects.end(), [cube](Cube* obj) {return *cube == *obj; }), objects.end());
+    delete cube;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

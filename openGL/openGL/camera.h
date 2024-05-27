@@ -169,7 +169,7 @@ public:
                 glm::vec3 dir = target - Original_Pos;
                 if (down)
                 {
-                    if (glm::distance(target, Position) > 0.01f)
+                    if (glm::distance(target, Position) > 0.1f)
                     {
                         Position += dir * MovementSpeed * deltaTime;
                         _viewLock = true;
@@ -181,7 +181,7 @@ public:
                 }
                 if (!down)
                 {
-                    if (glm::distance(Original_Pos, Position) > 0.01f)
+                    if (glm::distance(Original_Pos, Position) > 0.1f)
                     {
                         Position -= dir * MovementSpeed * deltaTime;
                         _viewLock = true;

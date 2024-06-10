@@ -1,6 +1,0 @@
-﻿  camera.cpp
-  cube.cpp
-  test.cpp
-C:\Users\Jolcius\source\repos\openGL\openGL\shader.h(4,10): warning C4067: 预处理器指令后有意外标记 - 应输入换行符
-  正在生成代码...
-  openGL.vcxproj -> C:\Users\Jolcius\source\repos\openGL\x64\Debug\openGL.exe

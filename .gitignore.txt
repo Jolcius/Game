@@ -1,2 +1,0 @@
-openGL/x64/Debug/*
-openGL/openGL/x64/Debug/*

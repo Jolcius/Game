@@ -1,5 +1,5 @@
-#ifndef SHELTER_H
-#define SHELTER_H
+#ifndef BULLET_H
+#define BULLET_H
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -7,14 +7,16 @@
 
 #include "cube.h"
 
-#pragma once
-class Shelter :
+class Bullet :
     public Cube
 {
 public:
-    Shelter(Cube& cube, int health) : Cube(cube)
+    Bullet(Cube& cube, int health) : Cube(cube)
     {
         this->health = health;
+        this->velocity = glm::vec3(0, 0, 5);
+        this->localScale = glm::vec3(0.1, 0.1f, 0.1f);
+        this->color = glm::vec4(0.8, 0, 0, 1);
     }
 
     void SetHealth(int h) { health = h; }

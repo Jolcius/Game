@@ -5,6 +5,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <vector>
+#include <iostream>
+#include "cube.h"
+
 
 class Ray
 {
@@ -61,6 +65,26 @@ public:
         // 返回最近的相交点深度
         return t_min < 0.0f ? t_max : t_min;
 	}
+
+    Cube* RayCastCubes(std::vector<Cube*>& cubes)
+    {
+        Cube* front_cube;
+        float min_z = 50;
+        for (auto cube : cubes)
+        {
+            glm::vec3 pos = cube->getPos();
+            glm::vec3 scale = cube->getScale();
+            glm::vec3 high_P = glm::vec3(pos.x + scale.x * 0.5f, pos.y + scale.y * 0.5f, pos.z + scale.z * 0.5f);
+            glm::vec3 low_P = glm::vec3(pos.x - scale.x * 0.5f, pos.y - scale.y * 0.5f, pos.z - scale.z * 0.5f);
+            float z = this->RayCast(high_P, low_P);
+            if (z < min_z)
+            {
+                min_z = z;
+                front_cube = cube;
+            }
+        }
+        std::cout << "Ray hit." << std::endl;
+    }
 
 private:
 	glm::vec3 origin;

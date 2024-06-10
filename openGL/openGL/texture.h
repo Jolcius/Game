@@ -1,11 +1,11 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-class Texture
+class Texture_cube
 {
 public:
-	Texture();
-	Texture(const char* path);
+	Texture_cube();
+	Texture_cube(const char* path);
 
 	unsigned int getTexture();
 	void setTexture(const char* path);

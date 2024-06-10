@@ -7,19 +7,19 @@
 
 #include <iostream>
 
-Texture::Texture() {};
+Texture_cube::Texture_cube() {};
 
-Texture::Texture(const char* path)
+Texture_cube::Texture_cube(const char* path)
 {
 	this->path = path;
 	setTexture(path);
 }
 
-unsigned int Texture::getTexture()
+unsigned int Texture_cube::getTexture()
 {
 	return this->id;
 }
-void Texture::setTexture(const char* path)
+void Texture_cube::setTexture(const char* path)
 {
     // Éú³ÉÎÆÀí
     glGenTextures(1, &id);

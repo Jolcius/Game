@@ -169,25 +169,27 @@ public:
                 glm::vec3 dir = target - Original_Pos;
                 if (down)
                 {
-                    if (glm::distance(target, Position) > 0.1f)
+                    if (abs(target.x - Position.x) > 0.1f || target.z - Position.z < -0.1f)
                     {
                         Position += dir * MovementSpeed * deltaTime;
                         _viewLock = true;
                     }
                     else
                     {
+                        Position = target;
                         _viewLock = false;
                     }
                 }
                 if (!down)
                 {
-                    if (glm::distance(Original_Pos, Position) > 0.1f)
+                    if (abs(target.x - Position.x) > 0.1f || target.z - Position.z > 0.1f)
                     {
                         Position -= dir * MovementSpeed * deltaTime;
                         _viewLock = true;
                     }
                     else
                     {
+                        Position = Original_Pos;
                         Yaw = -90.f;
                         Pitch = 0;
                         updateCameraVectors();

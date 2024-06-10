@@ -1,5 +1,5 @@
-#ifndef SHELTER_H
-#define SHELTER_H
+#ifndef TRAP_H
+#define TRAP_H
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -8,13 +8,16 @@
 #include "cube.h"
 
 #pragma once
-class Shelter :
+class Trap :
     public Cube
 {
 public:
-    Shelter(Cube& cube, int health) : Cube(cube)
+    Trap(Cube& cube, int health) : Cube(cube)
     {
         this->health = health;
+        this->velocity = glm::vec3(0, 0, 5);
+        this->localScale = glm::vec3(1, 0.2f, 0.2f);
+        this->color = glm::vec4(0.8, 0, 0, 1);
     }
 
     void SetHealth(int h) { health = h; }

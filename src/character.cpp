@@ -1,39 +1,31 @@
+#include "stb_image.h"
 #include <character.h>
-#include <iostream>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "stb_image.h"
+#include <iostream>
 
-Character::Character(const std::string& modelPath): 
+Character::Character(const std::string &modelPath)
+    :
 
-    groundLevel(-0.7f),
-    position(0.0f, -0.7f, -1.0f), 
-    scale(1.8f), 
-    currentState(STANDING), 
-    velocityY(0.0f), 
-    gravity(50.0f),
-    isInvincible(false), 
-    invincibleTimer(0.0f),
-    leftPosition(),
-    rightPosition(),
-    middlePosition(),
+      groundLevel(-0.7f), position(0.0f, -0.7f, -1.0f), scale(1.8f),
+      currentState(STANDING), velocityY(0.0f), gravity(50.0f),
+      isInvincible(false), invincibleTimer(0.0f), leftPosition(),
+      rightPosition(), middlePosition(),
 
-    initialRotation(glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)))  // ��y����ת180��
+      initialRotation(glm::rotate(glm::mat4(1.0f), glm::radians(180.0f),
+                                  glm::vec3(0.0f, 1.0f, 0.0f))) // ��y����ת180��
 {
     model = new Model(modelPath);
-    Animation* idleAnimation = new Animation("path/Rifle Idle.dae", model, true);
+    Animation *idleAnimation =
+        new Animation("path/Rifle Idle.dae", model, true);
     animator = new Animator(idleAnimation);
-
 }
-
-
 
 Character::~Character() {
     delete model;
     delete animator;
 }
-
 
 void Character::processInput(int key, bool isPressed) {
     if (isPressed) {
@@ -43,7 +35,8 @@ void Character::processInput(int key, bool isPressed) {
         switch (key) {
         case 'A':
             if (currentState == STANDING) {
-                Animation* RunningLeft = new Animation("path/Strafe Right.dae", model, false);
+                Animation *RunningLeft =
+                    new Animation("path/Strafe Right.dae", model, false);
                 animator->PlayAnimation(RunningLeft);
                 currentState = MOVING_LEFT;
                 std::cout << "向左移动" << std::endl;
@@ -51,7 +44,8 @@ void Character::processInput(int key, bool isPressed) {
             break;
         case 'D':
             if (currentState == STANDING) {
-                Animation* RunningRight = new Animation("path/Strafe Left.dae", model, false);
+                Animation *RunningRight =
+                    new Animation("path/Strafe Left.dae", model, false);
                 animator->PlayAnimation(RunningRight);
                 currentState = MOVING_RIGHT;
                 std::cout << "向右移动" << std::endl;
@@ -59,7 +53,8 @@ void Character::processInput(int key, bool isPressed) {
             break;
         case 'W':
             if (currentState == STANDING) {
-                Animation* Jumping = new Animation("path/Jumping.dae", model, false);
+                Animation *Jumping =
+                    new Animation("path/Jumping.dae", model, false);
                 animator->PlayAnimation(Jumping);
                 currentState = JUMPING;
                 velocityY = 5.0f;
@@ -68,7 +63,8 @@ void Character::processInput(int key, bool isPressed) {
             break;
         case 'S':
             if (currentState == STANDING) {
-                Animation* Crouching = new Animation("path/Idle Crouching.dae", model, true);
+                Animation *Crouching =
+                    new Animation("path/Idle Crouching.dae", model, true);
                 animator->PlayAnimation(Crouching);
                 currentState = CROUCHING;
                 std::cout << "蹲下" << std::endl;
@@ -77,11 +73,12 @@ void Character::processInput(int key, bool isPressed) {
         case 'R':
             if (currentState != JUMPING && currentState != FALLING) {
                 if (currentState == CROUCHING) {
-                    Animation* Reloading = new Animation("path/Reload.dae", model, false);
+                    Animation *Reloading =
+                        new Animation("path/Reload.dae", model, false);
                     animator->PlayAnimation(Reloading);
-                }
-                else {
-                    Animation* Reloading = new Animation("path/Reloading.dae", model, false);
+                } else {
+                    Animation *Reloading =
+                        new Animation("path/Reloading.dae", model, false);
                     animator->PlayAnimation(Reloading);
                 }
                 currentState = RELOADING;
@@ -90,13 +87,12 @@ void Character::processInput(int key, bool isPressed) {
             break;
         case 'T':
             onHit();
-                std::cout << "被击中" << std::endl;
+            std::cout << "被击中" << std::endl;
             break;
         }
-    }
-    else {
+    } else {
         if (key == 'S' && currentState == CROUCHING) {
-            Animation* Idle = new Animation("path/Rifle Idle.dae", model, true);
+            Animation *Idle = new Animation("path/Rifle Idle.dae", model, true);
             animator->PlayAnimation(Idle);
             currentState = STANDING;
             std::cout << "站立" << std::endl;
@@ -104,23 +100,24 @@ void Character::processInput(int key, bool isPressed) {
     }
 }
 
-
 void Character::update(float deltaTime) {
     // 更新无敌时间
     updateInvincibility(deltaTime);
-
 
     // 更新动画
     animator->UpdateAnimation(deltaTime);
 
     // 检查当前动画是否完成且不是循环动画
-    if (!animator->GetCurrentAnimation()->loop && animator->IsAnimationFinished() && currentState != MOVING_LEFT && currentState != MOVING_RIGHT) {
+    if (!animator->GetCurrentAnimation()->loop &&
+        animator->IsAnimationFinished() && currentState != MOVING_LEFT &&
+        currentState != MOVING_RIGHT) {
         // 恢复到前一个状态和动画
         currentState = m_PreviousState;
         animator->PlayAnimation(m_PreviousAnimation);
     }
 
-    std::cout << position.x << "," << position.y << "," << position.z << std::endl;
+    std::cout << position.x << "," << position.y << "," << position.z
+              << std::endl;
     std::cout << currentState << std::endl;
 
     // 更新角色位置
@@ -129,76 +126,75 @@ void Character::update(float deltaTime) {
         // 在站立状态下检查角色的位置并调整朝向
         if (currentPosition == 0) {
             facingDirection = RIGHT;
-        }
-        else if (currentPosition == 2) {
+        } else if (currentPosition == 2) {
             facingDirection = LEFT;
         }
         break;
     case JUMPING:
         position.y += velocityY * deltaTime; // 计算新的Y位置
         velocityY -= gravity * deltaTime; // 应用重力，减少垂直速度
-        std::cout << "跳跃中: 位置 = " << position.y << ", 速度 = " << velocityY << std::endl;
+        std::cout << "跳跃中: 位置 = " << position.y << ", 速度 = " << velocityY
+                  << std::endl;
         if (velocityY <= 0.0) {
             currentState = FALLING; // 如果垂直速度小于等于0，开始下落
             std::cout << "开始下落" << std::endl;
-
         }
         break;
     case FALLING:
         position.y += velocityY * deltaTime; // 继续应用垂直速度
-            velocityY -= gravity * deltaTime; // 继续应用重力
-            std::cout << "下落中: 位置 = " << position.y << ", 速度 = " << velocityY << std::endl;
-            if (position.y <= groundLevel) {
-                position.y = groundLevel; // 确保不会穿过地面
-                currentState = STANDING; // 落到地面后进入站立状态
-                velocityY = 0; // 重置垂直速度
-                std::cout << "落地，回到站立状态" << std::endl;
+        velocityY -= gravity * deltaTime;    // 继续应用重力
+        std::cout << "下落中: 位置 = " << position.y << ", 速度 = " << velocityY
+                  << std::endl;
+        if (position.y <= groundLevel) {
+            position.y = groundLevel; // 确保不会穿过地面
+            currentState = STANDING;  // 落到地面后进入站立状态
+            velocityY = 0;            // 重置垂直速度
+            std::cout << "落地，回到站立状态" << std::endl;
         }
         break;
     case MOVING_LEFT:
         moveTimer += deltaTime; // 更新移动计时器
-            if (moveTimer < moveDuration) {
-                // 在移动持续时间内，逐渐移动到目标位置
-                position = glm::mix(position, targetPosition, moveTimer / moveDuration);
-            }
-            else {
-                // 移动完成后，将位置设置为目标位置
-                position = targetPosition;
-                currentState = STANDING; // 移动完成后恢复到站立状态
-                moveTimer = 0.0f; // 重置移动计时器
-            }
+        if (moveTimer < moveDuration) {
+            // 在移动持续时间内，逐渐移动到目标位置
+            position =
+                glm::mix(position, targetPosition, moveTimer / moveDuration);
+        } else {
+            // 移动完成后，将位置设置为目标位置
+            position = targetPosition;
+            currentState = STANDING; // 移动完成后恢复到站立状态
+            moveTimer = 0.0f;        // 重置移动计时器
+        }
 
         break;
     case MOVING_RIGHT:
         moveTimer += deltaTime; // 更新移动计时器
-            if (moveTimer < moveDuration) {
-                // 在移动持续时间内，逐渐移动到目标位置
-                position = glm::mix(position, targetPosition, moveTimer / moveDuration);
-            }
-            else {
-                // 移动完成后，将位置设置为目标位置
-                position = targetPosition;
-                currentState = STANDING; // 移动完成后恢复到站立状态
-                moveTimer = 0.0f; // 重置移动计时器
-            }
+        if (moveTimer < moveDuration) {
+            // 在移动持续时间内，逐渐移动到目标位置
+            position =
+                glm::mix(position, targetPosition, moveTimer / moveDuration);
+        } else {
+            // 移动完成后，将位置设置为目标位置
+            position = targetPosition;
+            currentState = STANDING; // 移动完成后恢复到站立状态
+            moveTimer = 0.0f;        // 重置移动计时器
+        }
         break;
-    default:
-        break;
+    default: break;
     }
 
     // 确保在位置更新后更新动画
     animator->UpdateAnimation(deltaTime);
 }
 
-void Character::render(Shader& shader)
-{
+void Character::render(Shader &shader) {
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     // 应用位置变换
     modelMatrix = glm::translate(modelMatrix, position);
     // 应用缩放变换
     modelMatrix = glm::scale(modelMatrix, scale);
     // 应用初始旋转，这里假设角色的前方需要面向观察者，即需要旋转180度
-    modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(0, 1, 0));
+    modelMatrix =
+        glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(0, 1, 0));
 
     // 确保着色器程序激活
     shader.use();
@@ -209,7 +205,6 @@ void Character::render(Shader& shader)
     model->Draw(shader);
 }
 
-
 void Character::onHit() {
     if (!isInvincible) {
         std::cout << "Character hit!" << std::endl;
@@ -217,9 +212,6 @@ void Character::onHit() {
         invincibleTimer = 1.0f;
     }
 }
-
-
-
 
 void Character::jump() {
     // 实现跳跃逻辑
@@ -245,17 +237,17 @@ void Character::crouch() {
     // 加载蹲下纹理
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // 加载图片时翻转图片
-    unsigned char* data = stbi_load("textures/char/crouch.png", &width, &height, &nrChannels, 0);
+    unsigned char *data =
+        stbi_load("textures/char/crouch.png", &width, &height, &nrChannels, 0);
 
-    if (data)
-    {
+    if (data) {
         GLenum format = nrChannels == 4 ? GL_RGBA : GL_RGB; // 确定图像格式
-        glBindTexture(GL_TEXTURE_2D, texture_char); // 使用 Character 类中生成的纹理 ID
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glBindTexture(GL_TEXTURE_2D,
+                      texture_char); // 使用 Character 类中生成的纹理 ID
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+                     GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
+    } else {
         std::cout << "Failed to load crouch texture" << std::endl;
     }
     stbi_image_free(data);
@@ -268,29 +260,26 @@ void Character::stopCrouch() {
     // 加载站立纹理
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // 加载图片时翻转图片
-    unsigned char* data = stbi_load("textures/char/idle.png", &width, &height, &nrChannels, 0);
+    unsigned char *data =
+        stbi_load("textures/char/idle.png", &width, &height, &nrChannels, 0);
 
-    if (data)
-    {
+    if (data) {
         GLenum format = nrChannels == 4 ? GL_RGBA : GL_RGB; // 确定图像格式
-        glBindTexture(GL_TEXTURE_2D, texture_char); // 使用 Character 类中生成的纹理 ID
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glBindTexture(GL_TEXTURE_2D,
+                      texture_char); // 使用 Character 类中生成的纹理 ID
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+                     GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
+    } else {
         std::cout << "Failed to load idle texture" << std::endl;
     }
     stbi_image_free(data);
 }
 
-
-
 void Character::reload() {
     // ʵ��װ���߼�
     currentState = RELOADING;
 }
-
 
 glm::vec3 Character::calculateTargetPosition() {
     glm::vec3 targetPos = position; // ��Ŀ��λ�ó�ʼ��Ϊ��ǰλ��
@@ -299,15 +288,12 @@ glm::vec3 Character::calculateTargetPosition() {
     float movementDistance = 1.0f; // �����ƶ��ľ�����1����λ
     if (facingDirection == LEFT) {
         targetPos.x -= movementDistance; // �����ƶ�
-    }
-    else {
+    } else {
         targetPos.x += movementDistance; // �����ƶ�
     }
 
     return targetPos;
 }
-
-
 
 void Character::moveLeft() {
     // ����Ƿ������ƶ�������ǣ���ִ���ƶ��߼�
@@ -341,10 +327,11 @@ void Character::moveRight() {
     }
 }
 
-
 void Character::checkBounds() {
-    if (position.x < leftPosition.x) position.x = leftPosition.x;
-    if (position.x > rightPosition.x) position.x = rightPosition.x;
+    if (position.x < leftPosition.x)
+        position.x = leftPosition.x;
+    if (position.x > rightPosition.x)
+        position.x = rightPosition.x;
 }
 
 void Character::updateInvincibility(float deltaTime) {
@@ -355,8 +342,7 @@ void Character::updateInvincibility(float deltaTime) {
         if (invincibleTimer > 0.8f) {
             // ��һ�뱣�ֺ�ɫ
             color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-        }
-        else {
+        } else {
             // ��һ��֮�󱣳�������ɫ
             color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         }
@@ -364,10 +350,9 @@ void Character::updateInvincibility(float deltaTime) {
         // ��˸Ч����������0.1��Ϊ��λ�л�͸���ȣ�
         float blinkRate = 0.2f;
         if (fmod(invincibleTimer, blinkRate) > blinkRate / 2.0f) {
-            color.a = 0.3f;  // ����͸����Ϊ0.3
-        }
-        else {
-            color.a = 1.0f;  // ����͸����Ϊ1.0
+            color.a = 0.3f; // ����͸����Ϊ0.3
+        } else {
+            color.a = 1.0f; // ����͸����Ϊ1.0
         }
 
         if (invincibleTimer <= 0.0f) {

@@ -8,28 +8,27 @@
 #include "cube.h"
 
 #pragma once
-class Shelter :
-    public Cube
-{
-public:
-    Shelter(Cube& cube, int health) : Cube(cube)
-    {
+class Shelter : public Cube {
+  public:
+    Shelter(Cube &cube, int health) : Cube(cube) {
         this->health = health;
     }
 
-    void SetHealth(int h) { health = h; }
-    int GetHealth() { return health; }
+    void SetHealth(int h) {
+        health = h;
+    }
+    int GetHealth() {
+        return health;
+    }
 
-    void TakeDamage(int damage)
-    {
+    void TakeDamage(int damage) {
         health -= damage;
-        if (health <= 0)
-        {
+        if (health <= 0) {
             this->_delete = true;
         }
     }
 
-private:
+  private:
     int health;
 };
 

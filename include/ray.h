@@ -5,33 +5,31 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <vector>
-#include <iostream>
 #include "cube.h"
+#include <iostream>
+#include <vector>
 
-
-class Ray
-{
-public:
-	Ray(glm::vec3 ori, glm::vec3 dir)
-	{
-		origin = ori;
-		direction = dir;
-	}
+class Ray {
+  public:
+    Ray(glm::vec3 ori, glm::vec3 dir) {
+        origin = ori;
+        direction = dir;
+    }
 
     // 投射射线，判断与包围盒是否相交并返回交点深度（z），参数为包围盒的最大顶点和最小顶点
-	float RayCast(glm::vec3 high_P, glm::vec3 low_P)
-	{
+    float RayCast(glm::vec3 high_P, glm::vec3 low_P) {
         // 定义 t_min 和 t_max 初始值
         float t_min = (low_P.x - origin.x) / direction.x;
         float t_max = (high_P.x - origin.x) / direction.x;
 
-        if (t_min > t_max) std::swap(t_min, t_max);
+        if (t_min > t_max)
+            std::swap(t_min, t_max);
 
         float ty_min = (low_P.y - origin.y) / direction.y;
         float ty_max = (high_P.y - origin.y) / direction.y;
 
-        if (ty_min > ty_max) std::swap(ty_min, ty_max);
+        if (ty_min > ty_max)
+            std::swap(ty_min, ty_max);
 
         // 检查 t_min 和 t_max 是否在 y 平面上相交
         if ((t_min > ty_max) || (ty_min > t_max))
@@ -46,7 +44,8 @@ public:
         float tz_min = (low_P.z - origin.z) / direction.z;
         float tz_max = (high_P.z - origin.z) / direction.z;
 
-        if (tz_min > tz_max) std::swap(tz_min, tz_max);
+        if (tz_min > tz_max)
+            std::swap(tz_min, tz_max);
 
         // 检查 t_min 和 t_max 是否在 z 平面上相交
         if ((t_min > tz_max) || (tz_min > t_max))
@@ -64,21 +63,22 @@ public:
 
         // 返回最近的相交点深度
         return t_min < 0.0f ? t_max : t_min;
-	}
+    }
 
-    Cube* RayCastCubes(std::vector<Cube*>& cubes)
-    {
-        Cube* front_cube;
+    Cube *RayCastCubes(std::vector<Cube *> &cubes) {
+        Cube *front_cube;
         float min_z = 50;
-        for (auto cube : cubes)
-        {
+        for (auto cube : cubes) {
             glm::vec3 pos = cube->getPos();
             glm::vec3 scale = cube->getScale();
-            glm::vec3 high_P = glm::vec3(pos.x + scale.x * 0.5f, pos.y + scale.y * 0.5f, pos.z + scale.z * 0.5f);
-            glm::vec3 low_P = glm::vec3(pos.x - scale.x * 0.5f, pos.y - scale.y * 0.5f, pos.z - scale.z * 0.5f);
+            glm::vec3 high_P =
+                glm::vec3(pos.x + scale.x * 0.5f, pos.y + scale.y * 0.5f,
+                          pos.z + scale.z * 0.5f);
+            glm::vec3 low_P =
+                glm::vec3(pos.x - scale.x * 0.5f, pos.y - scale.y * 0.5f,
+                          pos.z - scale.z * 0.5f);
             float z = this->RayCast(high_P, low_P);
-            if (z < min_z)
-            {
+            if (z < min_z) {
                 min_z = z;
                 front_cube = cube;
             }
@@ -86,9 +86,9 @@ public:
         std::cout << "Ray hit." << std::endl;
     }
 
-private:
-	glm::vec3 origin;
-	glm::vec3 direction;
+  private:
+    glm::vec3 origin;
+    glm::vec3 direction;
 };
 
 #endif

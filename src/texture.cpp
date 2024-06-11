@@ -1,7 +1,7 @@
 #include "texture.h"
 
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <GLFW\glfw3.h>
 #include <glm/glm.hpp>
 #include "stb_image.h"
 
@@ -11,25 +11,25 @@ Texture_cube::Texture_cube() {};
 
 Texture_cube::Texture_cube(const char* path)
 {
-	this->path = path;
-	setTexture(path);
+    this->path = path;
+    setTexture(path);
 }
 
 unsigned int Texture_cube::getTexture()
 {
-	return this->id;
+    return this->id;
 }
 void Texture_cube::setTexture(const char* path)
 {
-    // Éú³ÉÎÆÀí
+    // ç”Ÿæˆçº¹ç†
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    // Îªµ±Ç°°ó¶¨µÄÎÆÀí¶ÔÏóÉèÖÃ»·ÈÆ¡¢¹ıÂË·½Ê½
+    // ä¸ºå½“å‰ç»‘å®šçš„çº¹ç†å¯¹è±¡è®¾ç½®ç¯ç»•ã€è¿‡æ»¤æ–¹å¼
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // ¼ÓÔØ²¢Éú³ÉÎÆÀí
+    // åŠ è½½å¹¶ç”Ÿæˆçº¹ç†
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrChannels;
     unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);

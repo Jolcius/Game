@@ -54,13 +54,14 @@ static float vertices[] = {
 class Cube
 {
 protected:
-    glm::vec3 position;     // 位置
-    glm::vec3 rotation;     // 旋转
-    glm::vec3 localScale;   // 缩放
+    glm::vec3 position;     // 浣嶇疆
+    glm::vec3 rotation;     // 鏃嬭浆
+    glm::vec3 localScale;   // 缂╂斁
 
-    Texture_cube texture;        // 纹理
-    glm::vec4 color;        // 颜色
-    glm::vec3 velocity;     // 速度
+    Texture_cube texture;        // 绾圭悊
+    glm::vec4 color;        // 棰滆壊
+    glm::vec3 velocity;     // 閫熷害
+
 
 public:
     Cube();

@@ -19,7 +19,7 @@ Character::Character(const std::string& modelPath):
     rightPosition(),
     middlePosition(),
 
-    initialRotation(glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)))  // ÈÆyÖáÐý×ª180¶È
+    initialRotation(glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)))  // ï¿½ï¿½yï¿½ï¿½ï¿½ï¿½×ª180ï¿½ï¿½
 {
     model = new Model(modelPath);
     Animation* idleAnimation = new Animation("path/Rifle Idle.dae", model, true);
@@ -37,7 +37,7 @@ Character::~Character() {
 
 void Character::processInput(int key, bool isPressed) {
     if (isPressed) {
-        // ÔÚ²¥·ÅÐÂ¶¯»­Ç°±£´æµ±Ç°¶¯»­ºÍ×´Ì¬
+        // åœ¨æ’­æ”¾æ–°åŠ¨ç”»å‰ä¿å­˜å½“å‰åŠ¨ç”»å’ŒçŠ¶æ€
         m_PreviousAnimation = animator->GetCurrentAnimation();
         m_PreviousState = currentState;
         switch (key) {
@@ -46,7 +46,7 @@ void Character::processInput(int key, bool isPressed) {
                 Animation* RunningLeft = new Animation("path/Strafe Right.dae", model, false);
                 animator->PlayAnimation(RunningLeft);
                 currentState = MOVING_LEFT;
-                std::cout << "Ïò×óÒÆ¶¯" << std::endl;
+                std::cout << "å‘å·¦ç§»åŠ¨" << std::endl;
             }
             break;
         case 'D':
@@ -54,7 +54,7 @@ void Character::processInput(int key, bool isPressed) {
                 Animation* RunningRight = new Animation("path/Strafe Left.dae", model, false);
                 animator->PlayAnimation(RunningRight);
                 currentState = MOVING_RIGHT;
-                std::cout << "ÏòÓÒÒÆ¶¯" << std::endl;
+                std::cout << "å‘å³ç§»åŠ¨" << std::endl;
             }
             break;
         case 'W':
@@ -63,7 +63,7 @@ void Character::processInput(int key, bool isPressed) {
                 animator->PlayAnimation(Jumping);
                 currentState = JUMPING;
                 velocityY = 5.0f;
-                std::cout << "ÌøÔ¾" << std::endl;
+                std::cout << "è·³è·ƒ" << std::endl;
             }
             break;
         case 'S':
@@ -71,7 +71,7 @@ void Character::processInput(int key, bool isPressed) {
                 Animation* Crouching = new Animation("path/Idle Crouching.dae", model, true);
                 animator->PlayAnimation(Crouching);
                 currentState = CROUCHING;
-                std::cout << "¶×ÏÂ" << std::endl;
+                std::cout << "è¹²ä¸‹" << std::endl;
             }
             break;
         case 'R':
@@ -85,12 +85,12 @@ void Character::processInput(int key, bool isPressed) {
                     animator->PlayAnimation(Reloading);
                 }
                 currentState = RELOADING;
-                std::cout << "ÖØÐÂ×°Ìî" << std::endl;
+                std::cout << "é‡æ–°è£…å¡«" << std::endl;
             }
             break;
         case 'T':
             onHit();
-            std::cout << "±»»÷ÖÐ" << std::endl;
+                std::cout << "è¢«å‡»ä¸­" << std::endl;
             break;
         }
     }
@@ -99,23 +99,23 @@ void Character::processInput(int key, bool isPressed) {
             Animation* Idle = new Animation("path/Rifle Idle.dae", model, true);
             animator->PlayAnimation(Idle);
             currentState = STANDING;
-            std::cout << "Õ¾Á¢" << std::endl;
+            std::cout << "ç«™ç«‹" << std::endl;
         }
     }
 }
 
 
 void Character::update(float deltaTime) {
-    // ¸üÐÂÎÞµÐÊ±¼ä
+    // æ›´æ–°æ— æ•Œæ—¶é—´
     updateInvincibility(deltaTime);
 
 
-    // ¸üÐÂ¶¯»­
+    // æ›´æ–°åŠ¨ç”»
     animator->UpdateAnimation(deltaTime);
 
-    // ¼ì²éµ±Ç°¶¯»­ÊÇ·ñÍê³ÉÇÒ²»ÊÇÑ­»·¶¯»­
+    // æ£€æŸ¥å½“å‰åŠ¨ç”»æ˜¯å¦å®Œæˆä¸”ä¸æ˜¯å¾ªçŽ¯åŠ¨ç”»
     if (!animator->GetCurrentAnimation()->loop && animator->IsAnimationFinished() && currentState != MOVING_LEFT && currentState != MOVING_RIGHT) {
-        // »Ö¸´µ½Ç°Ò»¸ö×´Ì¬ºÍ¶¯»­
+        // æ¢å¤åˆ°å‰ä¸€ä¸ªçŠ¶æ€å’ŒåŠ¨ç”»
         currentState = m_PreviousState;
         animator->PlayAnimation(m_PreviousAnimation);
     }
@@ -123,10 +123,10 @@ void Character::update(float deltaTime) {
     std::cout << position.x << "," << position.y << "," << position.z << std::endl;
     std::cout << currentState << std::endl;
 
-    // ¸üÐÂ½ÇÉ«Î»ÖÃ
+    // æ›´æ–°è§’è‰²ä½ç½®
     switch (currentState) {
     case STANDING:
-        // ÔÚÕ¾Á¢×´Ì¬ÏÂ¼ì²é½ÇÉ«µÄÎ»ÖÃ²¢µ÷Õû³¯Ïò
+        // åœ¨ç«™ç«‹çŠ¶æ€ä¸‹æ£€æŸ¥è§’è‰²çš„ä½ç½®å¹¶è°ƒæ•´æœå‘
         if (currentPosition == 0) {
             facingDirection = RIGHT;
         }
@@ -135,75 +135,77 @@ void Character::update(float deltaTime) {
         }
         break;
     case JUMPING:
-        position.y += velocityY * deltaTime; // ¼ÆËãÐÂµÄYÎ»ÖÃ
-        velocityY -= gravity * deltaTime; // Ó¦ÓÃÖØÁ¦£¬¼õÉÙ´¹Ö±ËÙ¶È
-        std::cout << "ÌøÔ¾ÖÐ: Î»ÖÃ = " << position.y << ", ËÙ¶È = " << velocityY << std::endl;
+        position.y += velocityY * deltaTime; // è®¡ç®—æ–°çš„Yä½ç½®
+        velocityY -= gravity * deltaTime; // åº”ç”¨é‡åŠ›ï¼Œå‡å°‘åž‚ç›´é€Ÿåº¦
+        std::cout << "è·³è·ƒä¸­: ä½ç½® = " << position.y << ", é€Ÿåº¦ = " << velocityY << std::endl;
         if (velocityY <= 0.0) {
-            currentState = FALLING; // Èç¹û´¹Ö±ËÙ¶ÈÐ¡ÓÚµÈÓÚ0£¬¿ªÊ¼ÏÂÂä
-            std::cout << "¿ªÊ¼ÏÂÂä" << std::endl;
+            currentState = FALLING; // å¦‚æžœåž‚ç›´é€Ÿåº¦å°äºŽç­‰äºŽ0ï¼Œå¼€å§‹ä¸‹è½
+            std::cout << "å¼€å§‹ä¸‹è½" << std::endl;
+
         }
         break;
     case FALLING:
-        position.y += velocityY * deltaTime; // ¼ÌÐøÓ¦ÓÃ´¹Ö±ËÙ¶È
-        velocityY -= gravity * deltaTime; // ¼ÌÐøÓ¦ÓÃÖØÁ¦
-        std::cout << "ÏÂÂäÖÐ: Î»ÖÃ = " << position.y << ", ËÙ¶È = " << velocityY << std::endl;
-        if (position.y <= groundLevel) {
-            position.y = groundLevel; // È·±£²»»á´©¹ýµØÃæ
-            currentState = STANDING; // Âäµ½µØÃæºó½øÈëÕ¾Á¢×´Ì¬
-            velocityY = 0; // ÖØÖÃ´¹Ö±ËÙ¶È
-            std::cout << "ÂäµØ£¬»Øµ½Õ¾Á¢×´Ì¬" << std::endl;
+        position.y += velocityY * deltaTime; // ç»§ç»­åº”ç”¨åž‚ç›´é€Ÿåº¦
+            velocityY -= gravity * deltaTime; // ç»§ç»­åº”ç”¨é‡åŠ›
+            std::cout << "ä¸‹è½ä¸­: ä½ç½® = " << position.y << ", é€Ÿåº¦ = " << velocityY << std::endl;
+            if (position.y <= groundLevel) {
+                position.y = groundLevel; // ç¡®ä¿ä¸ä¼šç©¿è¿‡åœ°é¢
+                currentState = STANDING; // è½åˆ°åœ°é¢åŽè¿›å…¥ç«™ç«‹çŠ¶æ€
+                velocityY = 0; // é‡ç½®åž‚ç›´é€Ÿåº¦
+                std::cout << "è½åœ°ï¼Œå›žåˆ°ç«™ç«‹çŠ¶æ€" << std::endl;
         }
         break;
     case MOVING_LEFT:
-        moveTimer += deltaTime; // ¸üÐÂÒÆ¶¯¼ÆÊ±Æ÷
-        if (moveTimer < moveDuration) {
-            // ÔÚÒÆ¶¯³ÖÐøÊ±¼äÄÚ£¬Öð½¥ÒÆ¶¯µ½Ä¿±êÎ»ÖÃ
-            position = glm::mix(position, targetPosition, moveTimer / moveDuration);
-        }
-        else {
-            // ÒÆ¶¯Íê³Éºó£¬½«Î»ÖÃÉèÖÃÎªÄ¿±êÎ»ÖÃ
-            position = targetPosition;
-            currentState = STANDING; // ÒÆ¶¯Íê³Éºó»Ö¸´µ½Õ¾Á¢×´Ì¬
-            moveTimer = 0.0f; // ÖØÖÃÒÆ¶¯¼ÆÊ±Æ÷
-        }
+        moveTimer += deltaTime; // æ›´æ–°ç§»åŠ¨è®¡æ—¶å™¨
+            if (moveTimer < moveDuration) {
+                // åœ¨ç§»åŠ¨æŒç»­æ—¶é—´å†…ï¼Œé€æ¸ç§»åŠ¨åˆ°ç›®æ ‡ä½ç½®
+                position = glm::mix(position, targetPosition, moveTimer / moveDuration);
+            }
+            else {
+                // ç§»åŠ¨å®ŒæˆåŽï¼Œå°†ä½ç½®è®¾ç½®ä¸ºç›®æ ‡ä½ç½®
+                position = targetPosition;
+                currentState = STANDING; // ç§»åŠ¨å®ŒæˆåŽæ¢å¤åˆ°ç«™ç«‹çŠ¶æ€
+                moveTimer = 0.0f; // é‡ç½®ç§»åŠ¨è®¡æ—¶å™¨
+            }
+
         break;
     case MOVING_RIGHT:
-        moveTimer += deltaTime; // ¸üÐÂÒÆ¶¯¼ÆÊ±Æ÷
-        if (moveTimer < moveDuration) {
-            // ÔÚÒÆ¶¯³ÖÐøÊ±¼äÄÚ£¬Öð½¥ÒÆ¶¯µ½Ä¿±êÎ»ÖÃ
-            position = glm::mix(position, targetPosition, moveTimer / moveDuration);
-        }
-        else {
-            // ÒÆ¶¯Íê³Éºó£¬½«Î»ÖÃÉèÖÃÎªÄ¿±êÎ»ÖÃ
-            position = targetPosition;
-            currentState = STANDING; // ÒÆ¶¯Íê³Éºó»Ö¸´µ½Õ¾Á¢×´Ì¬
-            moveTimer = 0.0f; // ÖØÖÃÒÆ¶¯¼ÆÊ±Æ÷
-        }
+        moveTimer += deltaTime; // æ›´æ–°ç§»åŠ¨è®¡æ—¶å™¨
+            if (moveTimer < moveDuration) {
+                // åœ¨ç§»åŠ¨æŒç»­æ—¶é—´å†…ï¼Œé€æ¸ç§»åŠ¨åˆ°ç›®æ ‡ä½ç½®
+                position = glm::mix(position, targetPosition, moveTimer / moveDuration);
+            }
+            else {
+                // ç§»åŠ¨å®ŒæˆåŽï¼Œå°†ä½ç½®è®¾ç½®ä¸ºç›®æ ‡ä½ç½®
+                position = targetPosition;
+                currentState = STANDING; // ç§»åŠ¨å®ŒæˆåŽæ¢å¤åˆ°ç«™ç«‹çŠ¶æ€
+                moveTimer = 0.0f; // é‡ç½®ç§»åŠ¨è®¡æ—¶å™¨
+            }
         break;
     default:
         break;
     }
 
-    // È·±£ÔÚÎ»ÖÃ¸üÐÂºó¸üÐÂ¶¯»­
+    // ç¡®ä¿åœ¨ä½ç½®æ›´æ–°åŽæ›´æ–°åŠ¨ç”»
     animator->UpdateAnimation(deltaTime);
 }
 
 void Character::render(Shader& shader)
 {
     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    // Ó¦ÓÃÎ»ÖÃ±ä»»
+    // åº”ç”¨ä½ç½®å˜æ¢
     modelMatrix = glm::translate(modelMatrix, position);
-    // Ó¦ÓÃËõ·Å±ä»»
+    // åº”ç”¨ç¼©æ”¾å˜æ¢
     modelMatrix = glm::scale(modelMatrix, scale);
-    // Ó¦ÓÃ³õÊ¼Ðý×ª£¬ÕâÀï¼ÙÉè½ÇÉ«µÄÇ°·½ÐèÒªÃæÏò¹Û²ìÕß£¬¼´ÐèÒªÐý×ª180¶È
+    // åº”ç”¨åˆå§‹æ—‹è½¬ï¼Œè¿™é‡Œå‡è®¾è§’è‰²çš„å‰æ–¹éœ€è¦é¢å‘è§‚å¯Ÿè€…ï¼Œå³éœ€è¦æ—‹è½¬180åº¦
     modelMatrix = glm::rotate(modelMatrix, glm::radians(180.0f), glm::vec3(0, 1, 0));
 
-    // È·±£×ÅÉ«Æ÷³ÌÐò¼¤»î
+    // ç¡®ä¿ç€è‰²å™¨ç¨‹åºæ¿€æ´»
     shader.use();
-    // ½«Ä£ÐÍ¾ØÕó´«µÝµ½×ÅÉ«Æ÷ÖÐ
+    // å°†æ¨¡åž‹çŸ©é˜µä¼ é€’åˆ°ç€è‰²å™¨ä¸­
     shader.setMat4("model", modelMatrix);
 
-    // »æÖÆÄ£ÐÍ
+    // ç»˜åˆ¶æ¨¡åž‹
     model->Draw(shader);
 }
 
@@ -220,35 +222,35 @@ void Character::onHit() {
 
 
 void Character::jump() {
-    // ÊµÏÖÌøÔ¾Âß¼­
+    // å®žçŽ°è·³è·ƒé€»è¾‘
     currentState = JUMPING;
-    // ÉèÖÃÌøÔ¾³õËÙ¶È£¬ÀýÈç
+    // è®¾ç½®è·³è·ƒåˆé€Ÿåº¦ï¼Œä¾‹å¦‚
     velocity.y = 10.0f;
 }
 
 void Character::shoot() {
-    // ÊµÏÖÉä»÷Âß¼­
-    currentState = STANDING; // ¼ÙÉèÉä»÷ºó½ÇÉ«»Ö¸´µ½Õ¾Á¢×´Ì¬
+    // å®žçŽ°å°„å‡»é€»è¾‘
+    currentState = STANDING; // å‡è®¾å°„å‡»åŽè§’è‰²æ¢å¤åˆ°ç«™ç«‹çŠ¶æ€
 }
 
 void Character::aim() {
-    // ÊµÏÖÃé×¼Âß¼­
+    // å®žçŽ°çž„å‡†é€»è¾‘
     currentState = AIMING;
 }
 
 void Character::crouch() {
-    // ÊµÏÖ¶×·üÂß¼­
+    // å®žçŽ°è¹²ä¼é€»è¾‘
     currentState = CROUCHING;
 
-    // ¼ÓÔØ¶×ÏÂÎÆÀí
+    // åŠ è½½è¹²ä¸‹çº¹ç†
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // ¼ÓÔØÍ¼Æ¬Ê±·­×ªÍ¼Æ¬
+    stbi_set_flip_vertically_on_load(true); // åŠ è½½å›¾ç‰‡æ—¶ç¿»è½¬å›¾ç‰‡
     unsigned char* data = stbi_load("textures/char/crouch.png", &width, &height, &nrChannels, 0);
 
     if (data)
     {
-        GLenum format = nrChannels == 4 ? GL_RGBA : GL_RGB; // È·¶¨Í¼Ïñ¸ñÊ½
-        glBindTexture(GL_TEXTURE_2D, texture_char); // Ê¹ÓÃ Character ÀàÖÐÉú³ÉµÄÎÆÀí ID
+        GLenum format = nrChannels == 4 ? GL_RGBA : GL_RGB; // ç¡®å®šå›¾åƒæ ¼å¼
+        glBindTexture(GL_TEXTURE_2D, texture_char); // ä½¿ç”¨ Character ç±»ä¸­ç”Ÿæˆçš„çº¹ç† ID
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -260,18 +262,18 @@ void Character::crouch() {
 }
 
 void Character::stopCrouch() {
-    // Í£Ö¹¶×·üÂß¼­
+    // åœæ­¢è¹²ä¼é€»è¾‘
     currentState = STANDING;
 
-    // ¼ÓÔØÕ¾Á¢ÎÆÀí
+    // åŠ è½½ç«™ç«‹çº¹ç†
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // ¼ÓÔØÍ¼Æ¬Ê±·­×ªÍ¼Æ¬
+    stbi_set_flip_vertically_on_load(true); // åŠ è½½å›¾ç‰‡æ—¶ç¿»è½¬å›¾ç‰‡
     unsigned char* data = stbi_load("textures/char/idle.png", &width, &height, &nrChannels, 0);
 
     if (data)
     {
-        GLenum format = nrChannels == 4 ? GL_RGBA : GL_RGB; // È·¶¨Í¼Ïñ¸ñÊ½
-        glBindTexture(GL_TEXTURE_2D, texture_char); // Ê¹ÓÃ Character ÀàÖÐÉú³ÉµÄÎÆÀí ID
+        GLenum format = nrChannels == 4 ? GL_RGBA : GL_RGB; // ç¡®å®šå›¾åƒæ ¼å¼
+        glBindTexture(GL_TEXTURE_2D, texture_char); // ä½¿ç”¨ Character ç±»ä¸­ç”Ÿæˆçš„çº¹ç† ID
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -285,21 +287,21 @@ void Character::stopCrouch() {
 
 
 void Character::reload() {
-    // ÊµÏÖ×°ÌîÂß¼­
+    // Êµï¿½ï¿½×°ï¿½ï¿½ï¿½ß¼ï¿½
     currentState = RELOADING;
 }
 
 
 glm::vec3 Character::calculateTargetPosition() {
-    glm::vec3 targetPos = position; // ½«Ä¿±êÎ»ÖÃ³õÊ¼»¯Îªµ±Ç°Î»ÖÃ
+    glm::vec3 targetPos = position; // ï¿½ï¿½Ä¿ï¿½ï¿½Î»ï¿½Ã³ï¿½Ê¼ï¿½ï¿½Îªï¿½ï¿½Ç°Î»ï¿½ï¿½
 
-    // ¼ÆËãÒÆ¶¯·½Ïò£¬¼ÙÉè×ó±ßÊÇ¸º·½Ïò£¬ÓÒ±ßÊÇÕý·½Ïò
-    float movementDistance = 1.0f; // ¼ÙÉèÒÆ¶¯µÄ¾àÀëÊÇ1¸öµ¥Î»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ò£¬¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    float movementDistance = 1.0f; // ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½Î»
     if (facingDirection == LEFT) {
-        targetPos.x -= movementDistance; // Ïò×óÒÆ¶¯
+        targetPos.x -= movementDistance; // ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½
     }
     else {
-        targetPos.x += movementDistance; // ÏòÓÒÒÆ¶¯
+        targetPos.x += movementDistance; // ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½
     }
 
     return targetPos;
@@ -308,33 +310,33 @@ glm::vec3 Character::calculateTargetPosition() {
 
 
 void Character::moveLeft() {
-    // ¼ì²éÊÇ·ñÕýÔÚÒÆ¶¯£¬Èç¹ûÊÇ£¬Ôò²»Ö´ÐÐÒÆ¶¯Âß¼­
+    // ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ß¼ï¿½
     if (currentState == MOVING_LEFT || currentState == MOVING_RIGHT) {
         return;
     }
 
-    // ¸üÐÂ³¯ÏòÎª×ó
+    // ï¿½ï¿½ï¿½Â³ï¿½ï¿½ï¿½Îªï¿½ï¿½
     facingDirection = LEFT;
 
     if (currentPosition > 0) {
         currentPosition--;
-        targetPosition = calculateTargetPosition(); // ¼ÆËãÄ¿±êÎ»ÖÃ
+        targetPosition = calculateTargetPosition(); // ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Î»ï¿½ï¿½
         currentState = MOVING_LEFT;
     }
 }
 
 void Character::moveRight() {
-    // ¼ì²éÊÇ·ñÕýÔÚÒÆ¶¯£¬Èç¹ûÊÇ£¬Ôò²»Ö´ÐÐÒÆ¶¯Âß¼­
+    // ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ß¼ï¿½
     if (currentState == MOVING_LEFT || currentState == MOVING_RIGHT) {
         return;
     }
 
-    // ¸üÐÂ³¯ÏòÎªÓÒ
+    // ï¿½ï¿½ï¿½Â³ï¿½ï¿½ï¿½Îªï¿½ï¿½
     facingDirection = RIGHT;
 
     if (currentPosition < 2) {
         currentPosition++;
-        targetPosition = calculateTargetPosition(); // ¼ÆËãÄ¿±êÎ»ÖÃ
+        targetPosition = calculateTargetPosition(); // ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Î»ï¿½ï¿½
         currentState = MOVING_RIGHT;
     }
 }
@@ -349,28 +351,28 @@ void Character::updateInvincibility(float deltaTime) {
     if (isInvincible) {
         invincibleTimer -= deltaTime;
 
-        // ÉèÖÃÑÕÉ«
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«
         if (invincibleTimer > 0.8f) {
-            // µÚÒ»Ãë±£³ÖºìÉ«
+            // ï¿½ï¿½Ò»ï¿½ë±£ï¿½Öºï¿½É«
             color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
         }
         else {
-            // µÚÒ»ÃëÖ®ºó±£³ÖÕý³£ÑÕÉ«
+            // ï¿½ï¿½Ò»ï¿½ï¿½Ö®ï¿½ó±£³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«
             color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         }
 
-        // ÉÁË¸Ð§¹û£¨¼ÙÉèÒÔ0.1ÃëÎªµ¥Î»ÇÐ»»Í¸Ã÷¶È£©
+        // ï¿½ï¿½Ë¸Ð§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0.1ï¿½ï¿½Îªï¿½ï¿½Î»ï¿½Ð»ï¿½Í¸ï¿½ï¿½ï¿½È£ï¿½
         float blinkRate = 0.2f;
         if (fmod(invincibleTimer, blinkRate) > blinkRate / 2.0f) {
-            color.a = 0.3f;  // ÉèÖÃÍ¸Ã÷¶ÈÎª0.3
+            color.a = 0.3f;  // ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½Îª0.3
         }
         else {
-            color.a = 1.0f;  // ÉèÖÃÍ¸Ã÷¶ÈÎª1.0
+            color.a = 1.0f;  // ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½Îª1.0
         }
 
         if (invincibleTimer <= 0.0f) {
-            isInvincible = false; // ÎÞµÐÊ±¼ä½áÊø
-            color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); // ÑÕÉ«»Ö¸´Õý³£
+            isInvincible = false; // ï¿½Þµï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½
+            color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); // ï¿½ï¿½É«ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½
         }
     }
 }

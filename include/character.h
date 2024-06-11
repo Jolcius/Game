@@ -11,15 +11,15 @@
 class Character {
 public:
     enum State {
-        STANDING,    // վ��״̬
-        AIMING,      // ��׼״̬
-        CROUCHING,   // �׷�״̬
-        RELOADING,   // װ��״̬
-        MOVING_LEFT, // �����ƶ�
-        MOVING_RIGHT,// �����ƶ�
-        JUMPING,     // ��Ծ״̬
-        FALLING,     // ����״̬
-        DEAD         // ����״̬
+        STANDING,    // 站立状态
+        AIMING,      // 瞄准状态
+        CROUCHING,   // 蹲伏状态
+        RELOADING,   // 装填状态
+        MOVING_LEFT, // 向左移动
+        MOVING_RIGHT,// 向右移动
+        JUMPING,     // 跳跃状态
+        FALLING,     // 下落状态
+        DEAD         // 死亡状态
     };
 
     enum Direction {
@@ -28,7 +28,7 @@ public:
     };
 
 
-    Direction facingDirection = RIGHT; // Ĭ�ϳ�������
+    Direction facingDirection = RIGHT; // 默认朝向向右
 
     Character(const std::string& modelPath);
     ~Character();

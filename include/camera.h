@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// ÉãÏñ»ú¿ÉÄÜµÄÒÆ¶¯Ñ¡Ïî
+// æ‘„åƒæœºå¯èƒ½çš„ç§»åŠ¨é€‰é¡¹
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -13,19 +13,19 @@ enum Camera_Movement {
     RIGHT
 };
 
-// ÉãÏñ»úÅÄÉãÄ£Ê½
+// æ‘„åƒæœºæ‹æ‘„æ¨¡å¼
 enum Camera_Mode {
     STATIC,
     FREE
 };
 
-// Êó±ê°´Å¥
+// é¼ æ ‡æŒ‰é’®
 enum Mouse_Button {
     M_LEFT,
     M_RIGHT
 };
 
-// Ä¬ÈÏÖµ
+// é»˜è®¤å€¼
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
 const float SPEED = 2.5f;
@@ -42,14 +42,14 @@ public:
     glm::vec3 Up;
     glm::vec3 Right;
     glm::vec3 WorldUp;
-    // Å·À­½Ç
+    // æ¬§æ‹‰è§’
     float Yaw;
     float Pitch;
-    // ÊôĞÔ
+    // å±æ€§
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
-    // Ä£Ê½
+    // æ¨¡å¼
     Camera_Mode mode;
     glm::vec3 Original_Pos;
 
@@ -84,7 +84,7 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
-    // ¼üÅÌÊäÈë´¦Àí
+    // é”®ç›˜è¾“å…¥å¤„ç†
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         if (mode == FREE)
@@ -101,7 +101,7 @@ public:
         }
     }
 
-    // Êó±êÒÆ¶¯´¦Àí
+    // é¼ æ ‡ç§»åŠ¨å¤„ç†
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {
         if(mode == FREE)
@@ -112,7 +112,7 @@ public:
             Yaw += xoffset;
             Pitch += yoffset;
 
-            // yÖáÉÏÏÂ½çÏŞÖÆ
+            // yè½´ä¸Šä¸‹ç•Œé™åˆ¶
             if (constrainPitch)
             {
                 if (Pitch > 89.0f)
@@ -121,7 +121,7 @@ public:
                     Pitch = -89.0f;
             }
 
-            // ¸üĞÂÉãÏñ»úÇ°/ÓÒ/ÉÏÏòÁ¿
+            // æ›´æ–°æ‘„åƒæœºå‰/å³/ä¸Šå‘é‡
             updateCameraVectors();
         }
         else if (mode == STATIC && _isAiming && !_viewLock)
@@ -145,7 +145,7 @@ public:
         }
     }
 
-    // Êó±ê¹öÂÖ´¦Àí
+    // é¼ æ ‡æ»šè½®å¤„ç†
     void ProcessMouseScroll(float yoffset)
     {
         if (mode == FREE)
@@ -158,12 +158,12 @@ public:
         }
     }
 
-    // Êó±êÊäÈë´¦Àí
+    // é¼ æ ‡è¾“å…¥å¤„ç†
     void ProcessMouseInput(Mouse_Button btn, glm::vec3 target, bool down, float deltaTime)
     {
         if (mode == STATIC)
         {
-            if (btn == M_RIGHT)     // ÓÒ¼üÃé×¼
+            if (btn == M_RIGHT)     // å³é”®ç„å‡†
             {
                 _isAiming = down;
                 glm::vec3 dir = target - Original_Pos;
@@ -196,14 +196,14 @@ public:
                     }
                 }
             }
-            if (btn == M_LEFT)      // ×ó¼üÉä»÷
+            if (btn == M_LEFT)      // å·¦é”®å°„å‡»
             {
-                // ºó×ùÁ¦
+                // ååº§åŠ›
             }
         }
     }
 
-    // Ä£Ê½ÇĞ»»
+    // æ¨¡å¼åˆ‡æ¢
     void SwitchMode(Camera_Mode mode)
     {
         this->mode = mode;
@@ -216,14 +216,14 @@ private:
 
     void updateCameraVectors()
     {
-        // ¼ÆËãÇ°ÏòÏòÁ¿
+        // è®¡ç®—å‰å‘å‘é‡
         glm::vec3 front;
         front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         front.y = sin(glm::radians(Pitch));
         front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         Front = glm::normalize(front);
-        // ¼ÆËãÓÒ/ÉÏÏòÁ¿
-        Right = glm::normalize(glm::cross(Front, WorldUp));  
+        // è®¡ç®—å³/ä¸Šå‘é‡
+        Right = glm::normalize(glm::cross(Front, WorldUp));
         Up = glm::normalize(glm::cross(Right, Front));
     }
 };

@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
-/* #include <filesystem> */
+#include <filesystem>
 #include <vector>
 
 #include "shader.h"
@@ -16,13 +16,13 @@
 #include "shelter.h"
 #include "trap.h"
 #include "machine.h"
-#include <audio_manager.h>
+#include "audio_manager.h"
 #include "stb_image.h"
-#include <character.h>
+#include "character.h"
 
 using namespace std;
 
-int SCR_WIDTH = 500, SCR_HEIGHT = 500;
+int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -45,445 +45,431 @@ unsigned int EBO;
 unsigned int vertexShader;
 unsigned int fragmentShader;
 
-// È«¾ÖÎïÌå
+// å…¨å±€ç‰©ä½“
 vector<Cube*> objects;
 
 
 int main()
 {
-	// ³õÊ¼»¯glfw
-	/* glfwInit(); */
+    // åˆå§‹åŒ–glfw
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    if (!glfwInit()) {
-        const char *errmsg = nullptr;
-        glfwGetError(&errmsg);
-        if (!errmsg)
-            errmsg = "(no error)";
-        std::cerr << "failed to initialize GLFW: " << errmsg << '\n';
+
+    // åˆ›å»ºå…¨å±çª—å£
+    //const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    //SCR_WIDTH = mode->width;
+    //SCR_HEIGHT = mode->height;
+    //GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Preview", glfwGetPrimaryMonitor(), NULL);
+
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Preview", NULL, NULL);
+
+
+    if (window == NULL)
+    {
+        cout << "Failed to create GLFW window" << endl;
+        glfwTerminate();
         return -1;
     }
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwMakeContextCurrent(window);
+
+    // åˆå§‹åŒ–glad
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 
-	// ´´½¨È«ÆÁ´°¿Ú
-	//const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-	//SCR_WIDTH = mode->width;
-	//SCR_HEIGHT = mode->height;
-	//GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Preview", glfwGetPrimaryMonitor(), NULL);
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Preview", NULL, NULL);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // éšè—é¼ æ ‡
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    // ç€è‰²å™¨
+    Shader shader("path/shaders/shader.vs", "path/shaders/shader.fs");
+    Shader modelShader("path/shaders/anim_model.vs", "path/shaders/anim_model.fs");
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    //glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // åˆ›å»ºcubeçº¹ç†
+    Texture_cube* cube_tex = new Texture_cube("textures/container.jpg");
+    Texture_cube* senpai_tex = new Texture_cube("textures/senpai.jpg");
+    Texture_cube* wall_tex = new Texture_cube("textures/wall.jpg");
+    Texture_cube* ceiling_tex = new Texture_cube("textures/ceiling.jpg");
+    Texture_cube* aim_tex = new Texture_cube("textures/aim.png");
 
 
-	if (window == NULL)
-	{
-		cout << "Failed to create GLFW window" << endl;
-        const char* description;
-        int errorCode = glfwGetError(&description);
-        if (errorCode != GLFW_NO_ERROR) {
-            std::cerr << "GLFW Error (" << errorCode << "): " << description << std::endl;
+    glEnable(GL_DEPTH_TEST);
+
+    //glDisable(GL_CULL_FACE);
+
+    // ç¡®ä¿åœ¨ OpenGL åˆå§‹åŒ–ååˆ›å»º Character å¯¹è±¡
+    // åˆ›å»º Character å¯¹è±¡ï¼Œä¼ é€’æ¨¡å‹è·¯å¾„
+    Character character("path/JoyfulJump.dae");
+
+
+    // åœ°é¢å’Œå¤©èŠ±æ¿
+    glm::vec3 ground_pos = glm::vec3(0, -1.5, -10);
+    Cube* ground = new Cube(ground_pos);
+    ground->setTexture(*cube_tex);
+    ground->setScale(glm::vec3(3, 0, 20));
+    objects.push_back(ground);
+    Cube* ceiling = new Cube(glm::vec3(0, 1.5, -10));
+    ceiling->setTexture(*ceiling_tex);
+    ceiling->setScale(glm::vec3(3, 0, 20));
+    objects.push_back(ceiling);
+
+    // å¢™å£
+    Cube* wall_1 = new Cube(glm::vec3(1.5, 0, -8));
+    wall_1->setScale(glm::vec3(0, 3, 24));
+    wall_1->setTexture(*wall_tex);
+    objects.push_back(wall_1);
+    Cube* wall_2 = new Cube(glm::vec3(-1.5, 0, -8));
+    wall_2->setScale(glm::vec3(0, 3, 24));
+    wall_2->setTexture(*wall_tex);
+    objects.push_back(wall_2);
+    Cube* wall_3 = new Cube(glm::vec3(0, 0, -20));
+    wall_3->setScale(glm::vec3(3, 3, 0));
+    wall_3->setTexture(*wall_tex);
+    objects.push_back(wall_3);
+
+    //// å‡†æ˜Ÿ
+    //Cube* aim = new Cube(glm::vec3(0, 0, 0));
+    //aim->setTexture(*aim_tex);
+    //aim->setScale(glm::vec3(1, 1, 0));
+    //objects.push_back(aim);
+
+    // æ©ä½“
+    Cube* shelter_1 = new Cube(glm::vec3(0, -1, -2));
+    shelter_1->setTexture(*cube_tex);
+    objects.push_back(new Shelter(*shelter_1, 10));
+    Cube* shelter_2 = new Cube(glm::vec3(-1, -1, -2));
+    shelter_2->setTexture(*cube_tex);
+    objects.push_back(new Shelter(*shelter_2, 10));
+    Cube* shelter_3 = new Cube(glm::vec3(1, -1, -2));
+    shelter_3->setTexture(*cube_tex);
+    objects.push_back(new Shelter(*shelter_3, 10));
+
+    // é™·é˜±
+    Cube* trap_1 = new Cube(glm::vec3(0, -1.2, -20));
+    trap_1->setTexture(*cube_tex);
+    objects.push_back(new Trap(*trap_1, 10));
+    Cube* machine_1 = new Cube(glm::vec3(0, 1, -20));
+    machine_1->setTexture(*cube_tex);
+    objects.push_back(new Machine(*machine_1, 10, ceiling_tex));
+
+    camera.MovementSpeed = 5.f;
+
+    // æ¸²æŸ“å¾ªç¯
+    while (!glfwWindowShouldClose(window))
+    {
+        // å¸§æ•°è®¡ç®—
+        float currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        // å¤„ç†è¾“å…¥
+        processInput(window, character);
+
+        // æ›´æ–°è§’è‰²çŠ¶æ€å’Œä½ç½®
+        character.update(deltaTime);
+
+        // æ›´æ–°åŠ¨ç”»
+        character.animator->UpdateAnimation(deltaTime);
+
+        // æ¸²æŸ“èƒŒæ™¯
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+        // æ¨¡å‹ç€è‰²å™¨é…ç½®å‚æ•°
+        modelShader.use();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        modelShader.setMat4("projection", projection);
+        modelShader.setMat4("view", view);
+
+        auto transforms = character.animator->GetFinalBoneMatrices();
+        for (int i = 0; i < transforms.size(); ++i)
+            modelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+
+        // æ¸²æŸ“å·²åŠ è½½æ¨¡å‹
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -1.f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(0.5f, 0.5f, -0.5f));	// it's a bit too big for our scene, so scale it down
+        modelShader.setMat4("model", model);
+        character.model->Draw(modelShader);
+
+
+
+        // è®¾ç½®ç€è‰²å™¨å¹¶æ¸²æŸ“è§’è‰²
+        shader.use();
+
+
+        int viewLoc = glGetUniformLocation(shader.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        int projectionLoc = glGetUniformLocation(shader.ID, "projection");
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+        glBindVertexArray(VAO);
+        //camera.SwitchMode(FREE);
+
+
+
+        // ç”»å‡ºObjects
+        for (auto& obj : objects)
+        {
+
+            // ç»‘å®šçº¹ç†
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, obj->getTexture());
+
+            glm::mat4 model;
+            model = glm::translate(model, obj->getPos());
+            model = glm::rotate(model, glm::radians(obj->getRot().x), glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(obj->getRot().y), glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(obj->getRot().z), glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::scale(model, obj->getScale());
+
+
+            // å‘é¡¶ç‚¹ç€è‰²å™¨è¾“å…¥modelçŸ©é˜µ
+            int modelLoc = glGetUniformLocation(shader.ID, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+            // å‘ç‰‡æ®µç€è‰²å™¨è¾“å…¥é¢œè‰²
+            glm::vec4 color = obj->getColor();
+            int colorLoc = glGetUniformLocation(shader.ID, "color");
+            glUniform4f(colorLoc, color.x, color.y, color.z, color.w);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            // å¤„ç†ç‰©ä½“ç§»åŠ¨
+            obj->setPos(obj->getPos() + obj->getVelocity() * deltaTime);
+
+            // æ£€æŸ¥é™·é˜±ä½ç½®
+            if (dynamic_cast<Trap*>(obj) || dynamic_cast<Bullet*>(obj))
+            {
+                //cout << "trap" << endl;
+                glm::vec3 pos = obj->getPos();
+                if (pos.z > 0)
+                {
+                    obj->_delete = true;
+                    /*if (abs(pos.x - character.getPosition().x) < 0.01f)
+                    {
+                        character.onHit();
+                    }*/
+                }
+            }
+            else if (dynamic_cast<Machine*>(obj))
+            {
+                //cout << "machine" << endl;
+                ((Machine*)obj)->Shoot(objects);
+            }
         }
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
 
-	// ³õÊ¼»¯glad
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
-
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        // å¤„ç†Objectsåˆ é™¤
+        for (auto& obj : objects)
+        {
+            if (obj->_delete)
+            {
+                remove_object(obj);
+                break;
+            }
+        }
 
 
 
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-
-	// Òş²ØÊó±ê
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-	// ×ÅÉ«Æ÷
-	Shader shader("path/shaders/shader.vs", "path/shaders/shader.fs");
-	Shader modelShader("path/shaders/anim_model.vs", "path/shaders/anim_model.fs");
-
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	//glGenBuffers(1, &EBO);
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	// texture coord attribute
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	// ´´½¨cubeÎÆÀí
-	Texture_cube* cube_tex = new Texture_cube("textures/container.jpg");
-	Texture_cube* senpai_tex = new Texture_cube("textures/senpai.jpg");
-	Texture_cube* wall_tex = new Texture_cube("textures/wall.jpg");
-	Texture_cube* ceiling_tex = new Texture_cube("textures/ceiling.jpg");
-	Texture_cube* aim_tex = new Texture_cube("textures/aim.png");
+        character.render(shader);  // ä¼ é€’ Shader å¯¹è±¡çš„å¼•ç”¨
 
 
-	glEnable(GL_DEPTH_TEST);
+        // äº¤æ¢ç¼“å†²ï¼Œè°ƒç”¨äº‹ä»¶
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
 
-	//glDisable(GL_CULL_FACE);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
 
-	// È·±£ÔÚ OpenGL ³õÊ¼»¯ºó´´½¨ Character ¶ÔÏó
-	// ´´½¨ Character ¶ÔÏó£¬´«µİÄ£ĞÍÂ·¾¶
-	Character character("path/JoyfulJump.dae");
-
-
-	// µØÃæºÍÌì»¨°å
-	glm::vec3 ground_pos = glm::vec3(0, -1.5, -10);
-	Cube* ground = new Cube(ground_pos);
-	ground->setTexture(*cube_tex);
-	ground->setScale(glm::vec3(3, 0, 20));
-	objects.push_back(ground);
-	Cube* ceiling = new Cube(glm::vec3(0, 1.5, -10));
-	ceiling->setTexture(*ceiling_tex);
-	ceiling->setScale(glm::vec3(3, 0, 20));
-	objects.push_back(ceiling);
-
-	// Ç½±Ú
-	Cube* wall_1 = new Cube(glm::vec3(1.5, 0, -8));
-	wall_1->setScale(glm::vec3(0, 3, 24));
-	wall_1->setTexture(*wall_tex);
-	objects.push_back(wall_1);
-	Cube* wall_2 = new Cube(glm::vec3(-1.5, 0, -8));
-	wall_2->setScale(glm::vec3(0, 3, 24));
-	wall_2->setTexture(*wall_tex);
-	objects.push_back(wall_2);
-	Cube* wall_3 = new Cube(glm::vec3(0, 0, -20));
-	wall_3->setScale(glm::vec3(3, 3, 0));
-	wall_3->setTexture(*wall_tex);
-	objects.push_back(wall_3);
-
-	//// ×¼ĞÇ
-	//Cube* aim = new Cube(glm::vec3(0, 0, 0));
-	//aim->setTexture(*aim_tex);
-	//aim->setScale(glm::vec3(1, 1, 0));
-	//objects.push_back(aim);
-
-	// ÑÚÌå
-	Cube* shelter_1 = new Cube(glm::vec3(0, -1, -2));
-	shelter_1->setTexture(*cube_tex);
-	objects.push_back(new Shelter(*shelter_1, 10));
-	Cube* shelter_2 = new Cube(glm::vec3(-1, -1, -2));
-	shelter_2->setTexture(*cube_tex);
-	objects.push_back(new Shelter(*shelter_2, 10));
-	Cube* shelter_3 = new Cube(glm::vec3(1, -1, -2));
-	shelter_3->setTexture(*cube_tex);
-	objects.push_back(new Shelter(*shelter_3, 10));
-
-	// ÏİÚå
-	Cube* trap_1 = new Cube(glm::vec3(0, -1.2, -20));
-	trap_1->setTexture(*cube_tex);
-	objects.push_back(new Trap(*trap_1, 10));
-	Cube* machine_1 = new Cube(glm::vec3(0, 1, -20));
-	machine_1->setTexture(*cube_tex);
-	objects.push_back(new Machine(*machine_1, 10, ceiling_tex));
-
-	camera.MovementSpeed = 5.f;
-
-	// äÖÈ¾Ñ­»·
-	while (!glfwWindowShouldClose(window))
-	{
-		// Ö¡Êı¼ÆËã
-		float currentFrame = static_cast<float>(glfwGetTime());
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-
-		// ´¦ÀíÊäÈë
-		processInput(window, character);
-
-		// ¸üĞÂ½ÇÉ«×´Ì¬ºÍÎ»ÖÃ
-		character.update(deltaTime);
-
-		// ¸üĞÂ¶¯»­
-		character.animator->UpdateAnimation(deltaTime);
-
-		// äÖÈ¾±³¾°
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-		// Ä£ĞÍ×ÅÉ«Æ÷ÅäÖÃ²ÎÊı
-		modelShader.use();
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-		modelShader.setMat4("projection", projection);
-		modelShader.setMat4("view", view);
-
-		auto transforms = character.animator->GetFinalBoneMatrices();
-		for (int i = 0; i < transforms.size(); ++i)
-			modelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
-
-		// äÖÈ¾ÒÑ¼ÓÔØÄ£ĞÍ
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -1.f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.5f, 0.5f, -0.5f));	// it's a bit too big for our scene, so scale it down
-		modelShader.setMat4("model", model);
-		character.model->Draw(modelShader);
-
-
-
-		// ÉèÖÃ×ÅÉ«Æ÷²¢äÖÈ¾½ÇÉ«
-		shader.use();
-
-
-		int viewLoc = glGetUniformLocation(shader.ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		int projectionLoc = glGetUniformLocation(shader.ID, "projection");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		glBindVertexArray(VAO);
-		//camera.SwitchMode(FREE);
-
-
-
-		// »­³öObjects
-		for (auto& obj : objects)
-		{
-
-			// °ó¶¨ÎÆÀí
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, obj->getTexture());
-
-			glm::mat4 model;
-			model = glm::translate(model, obj->getPos());
-			model = glm::rotate(model, glm::radians(obj->getRot().x), glm::vec3(1.0f, 0.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(obj->getRot().y), glm::vec3(0.0f, 1.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(obj->getRot().z), glm::vec3(0.0f, 0.0f, 1.0f));
-			model = glm::scale(model, obj->getScale());
-
-
-			// Ïò¶¥µã×ÅÉ«Æ÷ÊäÈëmodel¾ØÕó
-			int modelLoc = glGetUniformLocation(shader.ID, "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-			// ÏòÆ¬¶Î×ÅÉ«Æ÷ÊäÈëÑÕÉ«
-			glm::vec4 color = obj->getColor();
-			int colorLoc = glGetUniformLocation(shader.ID, "color");
-			glUniform4f(colorLoc, color.x, color.y, color.z, color.w);
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-
-			// ´¦ÀíÎïÌåÒÆ¶¯
-			obj->setPos(obj->getPos() + obj->getVelocity() * deltaTime);
-
-			// ¼ì²éÏİÚåÎ»ÖÃ
-			if (dynamic_cast<Trap*>(obj) || dynamic_cast<Bullet*>(obj))
-			{
-				//cout << "trap" << endl;
-				glm::vec3 pos = obj->getPos();
-				if (pos.z > 0)
-				{
-					obj->_delete = true;
-					/*if (abs(pos.x - character.getPosition().x) < 0.01f)
-					{
-						character.onHit();
-					}*/
-				}
-			}
-			else if (dynamic_cast<Machine*>(obj))
-			{
-				//cout << "machine" << endl;
-				((Machine*)obj)->Shoot(objects);
-			}
-		}
-
-		// ´¦ÀíObjectsÉ¾³ı
-		for (auto& obj : objects)
-		{
-			if (obj->_delete)
-			{
-				remove_object(obj);
-				break;
-			}
-		}
-
-
-
-		character.render(shader);  // ´«µİ Shader ¶ÔÏóµÄÒıÓÃ
-
-
-		// ½»»»»º³å£¬µ÷ÓÃÊÂ¼ş
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
-
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
-
-	glfwTerminate();
-	return 0;
+    glfwTerminate();
+    return 0;
 }
 
 void remove_object(Cube* cube)
 {
-	objects.erase(remove_if(objects.begin(), objects.end(), [cube](Cube* obj) {return *cube == *obj; }), objects.end());
-	delete cube;
+    objects.erase(remove_if(objects.begin(), objects.end(), [cube](Cube* obj) {return *cube == *obj; }), objects.end());
+    delete cube;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	glViewport(0, 0, width, height);
+    glViewport(0, 0, width, height);
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-	float xpos = static_cast<float>(xposIn);
-	float ypos = static_cast<float>(yposIn);
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
 
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
 
-	lastX = xpos;
-	lastY = ypos;
+    lastX = xpos;
+    lastY = ypos;
 
-	camera.ProcessMouseMovement(xoffset, yoffset);
+    camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
 void processInput(GLFWwindow* window, Character& character)
 {
-	static bool W_pressed = false;
-	static bool S_pressed = false;
-	static bool A_pressed = false;
-	static bool D_pressed = false;
-	static bool R_pressed = false;
-	static bool prev_W_pressed = false;
-	static bool prev_S_pressed = false;
-	static bool prev_A_pressed = false;
-	static bool prev_D_pressed = false;
-	static bool prev_R_pressed = false;
+    static bool W_pressed = false;
+    static bool S_pressed = false;
+    static bool A_pressed = false;
+    static bool D_pressed = false;
+    static bool R_pressed = false;
+    static bool prev_W_pressed = false;
+    static bool prev_S_pressed = false;
+    static bool prev_A_pressed = false;
+    static bool prev_D_pressed = false;
+    static bool prev_R_pressed = false;
 
-	static bool shoot_pressed = false;
-	static bool prev_shoot_pressed = false;
+    static bool shoot_pressed = false;
+    static bool prev_shoot_pressed = false;
 
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
 
-	// Ö÷½Ç²Ù×÷£¬Ö»ÔÚ°´ÏÂÊ±´¥·¢Ò»´Î
-	W_pressed = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
-	S_pressed = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
-	A_pressed = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
-	D_pressed = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
-	R_pressed = glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS;
-	shoot_pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
+    // ä¸»è§’æ“ä½œï¼Œåªåœ¨æŒ‰ä¸‹æ—¶è§¦å‘ä¸€æ¬¡
+    W_pressed = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS;
+    S_pressed = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS;
+    A_pressed = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
+    D_pressed = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
+    R_pressed = glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS;
+    shoot_pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
 
-	if (W_pressed && !prev_W_pressed)
-	{
-		character.processInput('W', true); // °´ÏÂW¼ü£¬´«Èë¼üÖµ'W'ºÍtrue
-	}
-	if (!W_pressed && prev_W_pressed)
-	{
-		character.processInput('W', false); // ËÉ¿ªW¼ü£¬´«Èë¼üÖµ'W'ºÍfalse
-	}
+    if (W_pressed && !prev_W_pressed)
+    {
+        character.processInput('W', true); // æŒ‰ä¸‹Wé”®ï¼Œä¼ å…¥é”®å€¼'W'å’Œtrue
+    }
+    if (!W_pressed && prev_W_pressed)
+    {
+        character.processInput('W', false); // æ¾å¼€Wé”®ï¼Œä¼ å…¥é”®å€¼'W'å’Œfalse
+    }
 
-	if (S_pressed && !prev_S_pressed)
-	{
-		character.processInput('S', true); // °´ÏÂS¼ü£¬´«Èë¼üÖµ'S'ºÍtrue
-	}
-	if (!S_pressed && prev_S_pressed)
-	{
-		character.processInput('S', false); // ËÉ¿ªS¼ü£¬´«Èë¼üÖµ'S'ºÍfalse
-	}
+    if (S_pressed && !prev_S_pressed)
+    {
+        character.processInput('S', true); // æŒ‰ä¸‹Sé”®ï¼Œä¼ å…¥é”®å€¼'S'å’Œtrue
+    }
+    if (!S_pressed && prev_S_pressed)
+    {
+        character.processInput('S', false); // æ¾å¼€Sé”®ï¼Œä¼ å…¥é”®å€¼'S'å’Œfalse
+    }
 
-	if (A_pressed && !prev_A_pressed)
-	{
-		character.processInput('A', true); // °´ÏÂA¼ü£¬´«Èë¼üÖµ'A'ºÍtrue
-	}
-	if (!A_pressed && prev_A_pressed)
-	{
-		character.processInput('A', false); // ËÉ¿ªA¼ü£¬´«Èë¼üÖµ'A'ºÍfalse
-	}
+    if (A_pressed && !prev_A_pressed)
+    {
+        character.processInput('A', true); // æŒ‰ä¸‹Aé”®ï¼Œä¼ å…¥é”®å€¼'A'å’Œtrue
+    }
+    if (!A_pressed && prev_A_pressed)
+    {
+        character.processInput('A', false); // æ¾å¼€Aé”®ï¼Œä¼ å…¥é”®å€¼'A'å’Œfalse
+    }
 
-	if (D_pressed && !prev_D_pressed)
-	{
-		character.processInput('D', true); // °´ÏÂD¼ü£¬´«Èë¼üÖµ'D'ºÍtrue
-	}
-	if (!D_pressed && prev_D_pressed)
-	{
-		character.processInput('D', false); // ËÉ¿ªD¼ü£¬´«Èë¼üÖµ'D'ºÍfalse
-	}
+    if (D_pressed && !prev_D_pressed)
+    {
+        character.processInput('D', true); // æŒ‰ä¸‹Dé”®ï¼Œä¼ å…¥é”®å€¼'D'å’Œtrue
+    }
+    if (!D_pressed && prev_D_pressed)
+    {
+        character.processInput('D', false); // æ¾å¼€Dé”®ï¼Œä¼ å…¥é”®å€¼'D'å’Œfalse
+    }
 
-	if (R_pressed && !prev_R_pressed)
-	{
-		character.processInput('R', true); // °´ÏÂR¼ü£¬´«Èë¼üÖµ'R'ºÍtrue
-	}
-	if (!R_pressed && prev_R_pressed)
-	{
-		character.processInput('R', false); // ËÉ¿ªR¼ü£¬´«Èë¼üÖµ'R'ºÍfalse
-	}
+    if (R_pressed && !prev_R_pressed)
+    {
+        character.processInput('R', true); // æŒ‰ä¸‹Ré”®ï¼Œä¼ å…¥é”®å€¼'R'å’Œtrue
+    }
+    if (!R_pressed && prev_R_pressed)
+    {
+        character.processInput('R', false); // æ¾å¼€Ré”®ï¼Œä¼ å…¥é”®å€¼'R'å’Œfalse
+    }
 
-	if (shoot_pressed && !prev_shoot_pressed)
-	{
+    if (shoot_pressed && !prev_shoot_pressed)
+    {
 
-	}
-	if (!shoot_pressed && prev_shoot_pressed)
-	{
+    }
+    if (!shoot_pressed && prev_shoot_pressed)
+    {
 
-	}
+    }
 
-	// ±£´æµ±Ç°Ö¡µÄ°´¼ü×´Ì¬ÒÔ¹©ÏÂÒ»Ö¡Ê¹ÓÃ
-	prev_W_pressed = W_pressed;
-	prev_S_pressed = S_pressed;
-	prev_A_pressed = A_pressed;
-	prev_D_pressed = D_pressed;
-	prev_R_pressed = R_pressed;
+    // ä¿å­˜å½“å‰å¸§çš„æŒ‰é”®çŠ¶æ€ä»¥ä¾›ä¸‹ä¸€å¸§ä½¿ç”¨
+    prev_W_pressed = W_pressed;
+    prev_S_pressed = S_pressed;
+    prev_A_pressed = A_pressed;
+    prev_D_pressed = D_pressed;
+    prev_R_pressed = R_pressed;
 
-	prev_shoot_pressed = shoot_pressed;
+    prev_shoot_pressed = shoot_pressed;
 
-	// ÉãÏñ»úÒÆ¶¯
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
+    // æ‘„åƒæœºç§»åŠ¨
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 
-	// Êó±êÊäÈë
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
-		camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, 0), true, deltaTime);
-	else
-		camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, 0), false, deltaTime);
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
-		camera.ProcessMouseInput(M_RIGHT, glm::vec3(0, 0, 0), true, deltaTime);
-	else
-		camera.ProcessMouseInput(M_RIGHT, glm::vec3(0, 0, 0), false, deltaTime);
+    // é¼ æ ‡è¾“å…¥
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+        camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, 0), true, deltaTime);
+    else
+        camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, 0), false, deltaTime);
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+        camera.ProcessMouseInput(M_RIGHT, glm::vec3(0, 0, 0), true, deltaTime);
+    else
+        camera.ProcessMouseInput(M_RIGHT, glm::vec3(0, 0, 0), false, deltaTime);
 
 
 
-	// ²âÊÔ¼ü
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-		character.processInput('T', true);
+    // æµ‹è¯•é”®
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+        character.processInput('T', true);
 }

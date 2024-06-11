@@ -31,7 +31,7 @@ public:
         mciSendStringW(wStr.c_str(), NULL, 0, NULL);
     }
 
-    void Stop(bool close)	//若不再播放则close=true
+    void Stop(bool close)
     {
         std::wstring wName = std::wstring(name.begin(), name.end());
         std::wstring wStr = L"stop " + wName;

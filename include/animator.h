@@ -30,14 +30,14 @@ public:
         m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
 
         if (m_CurrentAnimation->loop) {
-            // ÖØ¸´¶¯»­£¬Ê¹ÓÃÄ£ÔËËãÑ­»·Ê±¼ä
+            // é‡å¤åŠ¨ç”»ï¼Œä½¿ç”¨æ¨¡è¿ç®—å¾ªçŽ¯æ—¶é—´
             m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
         }
         else {
-            // Èç¹û¶¯»­²»Ñ­»·£¬·ÀÖ¹Ê±¼ä³¬¹ý¶¯»­³ÖÐøÊ±¼ä
+            // å¦‚æžœåŠ¨ç”»ä¸å¾ªçŽ¯ï¼Œé˜²æ­¢æ—¶é—´è¶…è¿‡åŠ¨ç”»æŒç»­æ—¶é—´
             if (m_CurrentTime >= m_CurrentAnimation->GetDuration()) {
-                m_CurrentTime = m_CurrentAnimation->GetDuration(); // ÉèÖÃÊ±¼äÎª¶¯»­³ÖÐøÊ±¼ä
-                // ¿ÉÒÔÔÚÕâÀïµ÷ÓÃÒ»¸öº¯ÊýÀ´´¦Àí¶¯»­½áÊøÊÂ¼þ
+                m_CurrentTime = m_CurrentAnimation->GetDuration(); // è®¾ç½®æ—¶é—´ä¸ºåŠ¨ç”»æŒç»­æ—¶é—´
+                // å¯ä»¥åœ¨è¿™é‡Œè°ƒç”¨ä¸€ä¸ªå‡½æ•°æ¥å¤„ç†åŠ¨ç”»ç»“æŸäº‹ä»¶
                 return;
             }
         }

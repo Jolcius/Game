@@ -19,10 +19,10 @@ public:
 		direction = dir;
 	}
 
-	// Í¶ÉäÉäÏß£¬ÅÐ¶ÏÓë°üÎ§ºÐÊÇ·ñÏà½»²¢·µ»Ø½»µãÉî¶È£¨z£©£¬²ÎÊýÎª°üÎ§ºÐµÄ×î´ó¶¥µãºÍ×îÐ¡¶¥µã
+    // æŠ•å°„å°„çº¿ï¼Œåˆ¤æ–­ä¸ŽåŒ…å›´ç›’æ˜¯å¦ç›¸äº¤å¹¶è¿”å›žäº¤ç‚¹æ·±åº¦ï¼ˆzï¼‰ï¼Œå‚æ•°ä¸ºåŒ…å›´ç›’çš„æœ€å¤§é¡¶ç‚¹å’Œæœ€å°é¡¶ç‚¹
 	float RayCast(glm::vec3 high_P, glm::vec3 low_P)
 	{
-        // ¶¨Òå t_min ºÍ t_max ³õÊ¼Öµ
+        // å®šä¹‰ t_min å’Œ t_max åˆå§‹å€¼
         float t_min = (low_P.x - origin.x) / direction.x;
         float t_max = (high_P.x - origin.x) / direction.x;
 
@@ -33,11 +33,11 @@ public:
 
         if (ty_min > ty_max) std::swap(ty_min, ty_max);
 
-        // ¼ì²é t_min ºÍ t_max ÊÇ·ñÔÚ y Æ½ÃæÉÏÏà½»
+        // æ£€æŸ¥ t_min å’Œ t_max æ˜¯å¦åœ¨ y å¹³é¢ä¸Šç›¸äº¤
         if ((t_min > ty_max) || (ty_min > t_max))
             return -1.0f;
 
-        // ¸üÐÂ t_min ºÍ t_max
+        // æ›´æ–° t_min å’Œ t_max
         if (ty_min > t_min)
             t_min = ty_min;
         if (ty_max < t_max)
@@ -48,21 +48,21 @@ public:
 
         if (tz_min > tz_max) std::swap(tz_min, tz_max);
 
-        // ¼ì²é t_min ºÍ t_max ÊÇ·ñÔÚ z Æ½ÃæÉÏÏà½»
+        // æ£€æŸ¥ t_min å’Œ t_max æ˜¯å¦åœ¨ z å¹³é¢ä¸Šç›¸äº¤
         if ((t_min > tz_max) || (tz_min > t_max))
             return -1.0f;
 
-        // ¸üÐÂ t_min ºÍ t_max
+        // æ›´æ–° t_min å’Œ t_max
         if (tz_min > t_min)
             t_min = tz_min;
         if (tz_max < t_max)
             t_max = tz_max;
 
-        // Èç¹û t_min ºÍ t_max ¶¼ÎªÕý£¬ÔòÉäÏßÓë°üÎ§ºÐÏà½»
+        // å¦‚æžœ t_min å’Œ t_max éƒ½ä¸ºæ­£ï¼Œåˆ™å°„çº¿ä¸ŽåŒ…å›´ç›’ç›¸äº¤
         if (t_min < 0.0f && t_max < 0.0f)
             return -1.0f;
 
-        // ·µ»Ø×î½üµÄÏà½»µãÉî¶È
+        // è¿”å›žæœ€è¿‘çš„ç›¸äº¤ç‚¹æ·±åº¦
         return t_min < 0.0f ? t_max : t_min;
 	}
 

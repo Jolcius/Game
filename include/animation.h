@@ -20,12 +20,12 @@ struct AssimpNodeData
 class Animation
 {
 public:
-    // ÐÂÔöÒ»¸ö³ÉÔ±±äÁ¿À´¿ØÖÆ¶¯»­ÊÇ·ñÑ­»·²¥·Å
-    bool loop;  // ¿ØÖÆ¶¯»­ÊÇ·ñÑ­»·
+    // æ–°å¢žä¸€ä¸ªæˆå‘˜å˜é‡æ¥æŽ§åˆ¶åŠ¨ç”»æ˜¯å¦å¾ªçŽ¯æ’­æ”¾
+    bool loop;  // æŽ§åˆ¶åŠ¨ç”»æ˜¯å¦å¾ªçŽ¯
 
-    // ÐÞ¸Ä¹¹Ôìº¯ÊýÒÔ°üº¬Ñ­»·²¥·ÅµÄ¿ØÖÆ
+    // ä¿®æ”¹æž„é€ å‡½æ•°ä»¥åŒ…å«å¾ªçŽ¯æ’­æ”¾çš„æŽ§åˆ¶
     Animation(const std::string& animationPath, Model* model, bool loop = false)
-        : loop(loop)  // ³õÊ¼»¯ÁÐ±íÖÐÌí¼Óloop
+        : loop(loop)  // åˆå§‹åŒ–åˆ—è¡¨ä¸­æ·»åŠ loop
     {
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
@@ -93,9 +93,9 @@ private:
         dest.transformation = AssimpGLMHelpers::ConvertMatrixToGLMFormat(src->mTransformation);
 
         if (std::string(src->mName.data) == "mixamorig:Hips") {
-            dest.transformation[3][0] = 0.0f; // Çå³ýxÎ»ÖÃ
-            dest.transformation[3][1] = 0.0f; // Çå³ýyÎ»ÖÃ
-            dest.transformation[3][2] = 0.0f; // Çå³ýzÎ»ÖÃ
+            dest.transformation[3][0] = 0.0f; // ï¿½ï¿½ï¿½xÎ»ï¿½ï¿½
+            dest.transformation[3][1] = 0.0f; // ï¿½ï¿½ï¿½yÎ»ï¿½ï¿½
+            dest.transformation[3][2] = 0.0f; // ï¿½ï¿½ï¿½zÎ»ï¿½ï¿½
         }
 
         dest.childrenCount = src->mNumChildren;

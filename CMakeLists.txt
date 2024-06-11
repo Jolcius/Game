@@ -4,8 +4,9 @@ if (NOT CMAKE_BUILD_TYPE)
     # set(CMAKE_BUILD_TYPE Debug)
     set(CMAKE_BUILD_TYPE Release)
 endif()
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 project(Game
     LANGUAGES CXX C
@@ -55,4 +56,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC glad)
 add_subdirectory(3rdparty/assimp)
 target_link_libraries(${PROJECT_NAME} PUBLIC assimp)
 
+set_target_properties(Game PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set_target_properties(glfw PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set_target_properties(assimp PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 target_compile_definitions(${PROJECT_NAME} PUBLIC -DGAME_HOME=\"${CMAKE_CURRENT_SOURCE_DIR}/\")

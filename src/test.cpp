@@ -1,34 +1,36 @@
-#include <filesystem>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <filesystem>
 #include <vector>
 
-#include "animator.h"
-#include "audio_manager.h"
-#include "camera.h"
-#include "character.h"
-#include "cube.h"
-#include "machine.h"
-#include "model.h"
 #include "shader.h"
-#include "shelter.h"
-#include "stb_image.h"
+#include "camera.h"
 #include "texture.h"
+#include "animator.h"
+#include "model.h"
+#include "cube.h"
+#include "shelter.h"
 #include "trap.h"
+#include "machine.h"
+#include "levelManager.h"
+#include "audio_manager.h"
+#include "stb_image.h"
+#include "character.h"
+#include "ray.h"
 
 using namespace std;
 
 int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window, Character &character);
-void remove_object(Cube *cube);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void processInput(GLFWwindow* window, Character& character);
+void remove_object(Cube* cube);
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
@@ -46,25 +48,23 @@ unsigned int vertexShader;
 unsigned int fragmentShader;
 
 // 全局物体
-vector<Cube *> objects;
+vector<Cube*> objects;
 
-int main() {
+int fire_counter = 100;	// 枪口火焰渲染计数器
+
+int main()
+{
     // 初始化glfw
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // 创建全屏窗口
-    //const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    //SCR_WIDTH = mode->width;
-    //SCR_HEIGHT = mode->height;
-    //GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Preview", glfwGetPrimaryMonitor(), NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Preview", NULL, NULL);
 
-    GLFWwindow *window =
-        glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Preview", NULL, NULL);
 
-    if (window == NULL) {
+    if (window == NULL)
+    {
         cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
         return -1;
@@ -72,7 +72,8 @@ int main() {
     glfwMakeContextCurrent(window);
 
     // 初始化glad
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
@@ -84,103 +85,56 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
 
     // 隐藏鼠标
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // 着色器
-    Shader shader("path/shaders/shader.vs", "path/shaders/shader.fs");
-    Shader modelShader("path/shaders/anim_model.vs",
-                       "path/shaders/anim_model.fs");
+    Shader shader(GAME_HOME "assets/path/shaders/shader.vs", GAME_HOME "assets/path/shaders/shader.fs");
+    Shader modelShader(GAME_HOME "assets/path/shaders/anim_model.vs", GAME_HOME "assets/path/shaders/anim_model.fs");
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    //glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                          (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // 创建cube纹理
-    Texture_cube *cube_tex = new Texture_cube("textures/container.jpg");
-    Texture_cube *senpai_tex = new Texture_cube("textures/senpai.jpg");
-    Texture_cube *wall_tex = new Texture_cube("textures/wall.jpg");
-    Texture_cube *ceiling_tex = new Texture_cube("textures/ceiling.jpg");
-    Texture_cube *aim_tex = new Texture_cube("textures/aim.png");
-
     glEnable(GL_DEPTH_TEST);
-
-    //glDisable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // 确保在 OpenGL 初始化后创建 Character 对象
     // 创建 Character 对象，传递模型路径
-    Character character("path/JoyfulJump.dae");
+    Character character(GAME_HOME "assets/path/JoyfulJump.dae");
 
-    // 地面和天花板
-    glm::vec3 ground_pos = glm::vec3(0, -1.5, -10);
-    Cube *ground = new Cube(ground_pos);
-    ground->setTexture(*cube_tex);
-    ground->setScale(glm::vec3(3, 0, 20));
-    objects.push_back(ground);
-    Cube *ceiling = new Cube(glm::vec3(0, 1.5, -10));
-    ceiling->setTexture(*ceiling_tex);
-    ceiling->setScale(glm::vec3(3, 0, 20));
-    objects.push_back(ceiling);
+    // 关卡生成器
+    LevelManager _lm(objects);
+    _lm.SetDifficulty(_lm.DevilHunter);
+    _lm.InitScene();
 
-    // 墙壁
-    Cube *wall_1 = new Cube(glm::vec3(1.5, 0, -8));
-    wall_1->setScale(glm::vec3(0, 3, 24));
-    wall_1->setTexture(*wall_tex);
-    objects.push_back(wall_1);
-    Cube *wall_2 = new Cube(glm::vec3(-1.5, 0, -8));
-    wall_2->setScale(glm::vec3(0, 3, 24));
-    wall_2->setTexture(*wall_tex);
-    objects.push_back(wall_2);
-    Cube *wall_3 = new Cube(glm::vec3(0, 0, -20));
-    wall_3->setScale(glm::vec3(3, 3, 0));
-    wall_3->setTexture(*wall_tex);
-    objects.push_back(wall_3);
+    // 枪口火焰
+    Cube* fire = new Cube(glm::vec3(0, 0, 0));
+    Texture_cube* fire_tex = new Texture_cube(GAME_HOME "assets/textures/fire.png");
+    fire->setTexture(*fire_tex);
+    fire->setScale(glm::vec3(1, 1, 0));
+    // 准星
+    Cube* aim = new Cube(glm::vec3(0, 0, -1));
+    Texture_cube* aim_tex = new Texture_cube(GAME_HOME "assets/textures/aim.png");
+    aim->setTexture(*aim_tex);
+    aim->setScale(glm::vec3(1, 1, 0));
 
-    //// 准星
-    //Cube* aim = new Cube(glm::vec3(0, 0, 0));
-    //aim->setTexture(*aim_tex);
-    //aim->setScale(glm::vec3(1, 1, 0));
-    //objects.push_back(aim);
-
-    // 掩体
-    Cube *shelter_1 = new Cube(glm::vec3(0, -1, -2));
-    shelter_1->setTexture(*cube_tex);
-    objects.push_back(new Shelter(*shelter_1, 10));
-    Cube *shelter_2 = new Cube(glm::vec3(-1, -1, -2));
-    shelter_2->setTexture(*cube_tex);
-    objects.push_back(new Shelter(*shelter_2, 10));
-    Cube *shelter_3 = new Cube(glm::vec3(1, -1, -2));
-    shelter_3->setTexture(*cube_tex);
-    objects.push_back(new Shelter(*shelter_3, 10));
-
-    // 陷阱
-    Cube *trap_1 = new Cube(glm::vec3(0, -1.2, -20));
-    trap_1->setTexture(*cube_tex);
-    objects.push_back(new Trap(*trap_1, 10));
-    Cube *machine_1 = new Cube(glm::vec3(0, 1, -20));
-    machine_1->setTexture(*cube_tex);
-    objects.push_back(new Machine(*machine_1, 10, ceiling_tex));
-
-    camera.MovementSpeed = 5.f;
+    camera.MovementSpeed = 10.f;
 
     // 渲染循环
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         // 帧数计算
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -199,49 +153,59 @@ int main() {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
         // 模型着色器配置参数
         modelShader.use();
-        glm::mat4 projection = glm::perspective(
-            glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT,
-            0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         modelShader.setMat4("projection", projection);
         modelShader.setMat4("view", view);
 
         auto transforms = character.animator->GetFinalBoneMatrices();
         for (int i = 0; i < transforms.size(); ++i)
-            modelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]",
-                                transforms[i]);
+            modelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
 
         // 渲染已加载模型
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(
-            model,
-            glm::vec3(
-                0.0f, -1.f,
-                0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(
-            model,
-            glm::vec3(
-                0.5f, 0.5f,
-                -0.5f)); // it's a bit too big for our scene, so scale it down
         modelShader.setMat4("model", model);
         character.model->Draw(modelShader);
 
-        // 设置着色器并渲染角色
+        //cout << "frame" << endl;
+
+        // 设置着色器参数
         shader.use();
 
         int viewLoc = glGetUniformLocation(shader.ID, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         int projectionLoc = glGetUniformLocation(shader.ID, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE,
-                           glm::value_ptr(projection));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         glBindVertexArray(VAO);
-        //camera.SwitchMode(FREE);
+
+        // LevelManager生成敌人
+        _lm.GenerateEnemy();
+
+        // 炮台射击
+        vector<Cube*> new_objects;
+        for (auto& obj : objects)
+        {
+            if (dynamic_cast<Machine*>(obj))
+            {
+                Cube* new_obj = ((Machine*)obj)->Shoot();
+                if (dynamic_cast<Bullet*>(new_obj))
+                {
+                    new_objects.push_back(new_obj);
+                }
+            }
+        }
+        for (auto& obj : new_objects)
+        {
+            objects.push_back(obj);
+        }
 
         // 画出Objects
-        for (auto &obj : objects) {
+        for (auto& obj : objects)
+        {
 
             // 绑定纹理
             glActiveTexture(GL_TEXTURE0);
@@ -249,13 +213,11 @@ int main() {
 
             glm::mat4 model;
             model = glm::translate(model, obj->getPos());
-            model = glm::rotate(model, glm::radians(obj->getRot().x),
-                                glm::vec3(1.0f, 0.0f, 0.0f));
-            model = glm::rotate(model, glm::radians(obj->getRot().y),
-                                glm::vec3(0.0f, 1.0f, 0.0f));
-            model = glm::rotate(model, glm::radians(obj->getRot().z),
-                                glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::rotate(model, glm::radians(obj->getRot().x), glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(obj->getRot().y), glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(obj->getRot().z), glm::vec3(0.0f, 0.0f, 1.0f));
             model = glm::scale(model, obj->getScale());
+
 
             // 向顶点着色器输入model矩阵
             int modelLoc = glGetUniformLocation(shader.ID, "model");
@@ -272,31 +234,94 @@ int main() {
             obj->setPos(obj->getPos() + obj->getVelocity() * deltaTime);
 
             // 检查陷阱位置
-            if (dynamic_cast<Trap *>(obj) || dynamic_cast<Bullet *>(obj)) {
-                //cout << "trap" << endl;
+            if (dynamic_cast<Trap*>(obj) || dynamic_cast<Bullet*>(obj))
+            {
                 glm::vec3 pos = obj->getPos();
-                if (pos.z > 0) {
-                    obj->_delete = true;
-                    /*if (abs(pos.x - character.getPosition().x) < 0.01f)
+                if (!_lm.shelter->_delete && pos.z >= -2 && pos.z < -1)
+                {
+                    if (abs(_lm.shelter_x_pos - pos.x) < 0.01f && pos.y < -0.5f)
                     {
-                        character.onHit();
-                    }*/
+                        obj->_delete = true;
+                        _lm.shelter->TakeDamage(1);
+                    }
                 }
-            } else if (dynamic_cast<Machine *>(obj)) {
-                //cout << "machine" << endl;
-                ((Machine *)obj)->Shoot(objects);
+                if (pos.z >= -1)
+                {
+                    obj->_delete = true;
+                    if (abs(pos.x - character.getPosition().x) < 0.01f)
+                    {
+                        if(pos.y >= -0.5f && character.currentState != character.CROUCHING)
+                            character.onHit();
+                        if (pos.y < -0.5f && character.currentState != character.JUMPING)
+                            character.onHit();
+                    }
+                }
             }
+
         }
 
         // 处理Objects删除
-        for (auto &obj : objects) {
-            if (obj->_delete) {
+        for (auto& obj : objects)
+        {
+            if (obj->_delete)
+            {
                 remove_object(obj);
                 break;
             }
         }
 
-        character.render(shader); // 传递 Shader 对象的引用
+        // 渲染UI
+        glDisable(GL_DEPTH_TEST);	//关闭深度测试
+        if (camera.Position == glm::vec3(character.getPosition().x, 0, -1.2f))
+        {
+            if (fire_counter <= 2)
+            {
+                // 绑定纹理
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, fire->getTexture());
+
+                glm::mat4 model;
+                model = glm::translate(model, camera.Position + camera.Front);
+                model = glm::rotate(model, glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+                model = glm::rotate(model, glm::radians(90 - camera.Yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+                model = glm::scale(model, fire->getScale());
+
+                // 向顶点着色器输入model矩阵
+                int modelLoc = glGetUniformLocation(shader.ID, "model");
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+                // 向片段着色器输入颜色
+                glm::vec4 color = fire->getColor();
+                int colorLoc = glGetUniformLocation(shader.ID, "color");
+                glUniform4f(colorLoc, color.x, color.y, color.z, color.w);
+
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+                fire_counter++;
+            }
+            else if (fire_counter >= 1e6) fire_counter = 1e6;	// 防止越界
+            // 绑定纹理
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, aim->getTexture());
+
+            glm::mat4 model;
+            model = glm::translate(model, camera.Position + camera.Front);
+            model = glm::rotate(model, glm::radians(camera.Pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(90 - camera.Yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::scale(model, aim->getScale());
+
+            // 向顶点着色器输入model矩阵
+            int modelLoc = glGetUniformLocation(shader.ID, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            // 向片段着色器输入颜色
+            glm::vec4 color = aim->getColor();
+            int colorLoc = glGetUniformLocation(shader.ID, "color");
+            glUniform4f(colorLoc, color.x, color.y, color.z, color.w);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+        glEnable(GL_DEPTH_TEST);
+
+        character.render(shader);  // 传递 Shader 对象的引用
+
 
         // 交换缓冲，调用事件
         glfwSwapBuffers(window);
@@ -311,22 +336,24 @@ int main() {
     return 0;
 }
 
-void remove_object(Cube *cube) {
-    objects.erase(remove_if(objects.begin(), objects.end(),
-                            [cube](Cube *obj) { return *cube == *obj; }),
-                  objects.end());
+void remove_object(Cube* cube)
+{
+    objects.erase(remove_if(objects.begin(), objects.end(), [cube](Cube* obj) {return *cube == *obj; }), objects.end());
     delete cube;
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
     glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
-    if (firstMouse) {
+    if (firstMouse)
+    {
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
@@ -341,11 +368,13 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-void processInput(GLFWwindow *window, Character &character) {
+void processInput(GLFWwindow* window, Character& character)
+{
     static bool W_pressed = false;
     static bool S_pressed = false;
     static bool A_pressed = false;
@@ -360,6 +389,7 @@ void processInput(GLFWwindow *window, Character &character) {
     static bool shoot_pressed = false;
     static bool prev_shoot_pressed = false;
 
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
@@ -369,47 +399,69 @@ void processInput(GLFWwindow *window, Character &character) {
     A_pressed = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS;
     D_pressed = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
     R_pressed = glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS;
-    shoot_pressed =
-        glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
+    shoot_pressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
 
-    if (W_pressed && !prev_W_pressed) {
+    if (W_pressed && !prev_W_pressed)
+    {
         character.processInput('W', true); // 按下W键，传入键值'W'和true
     }
-    if (!W_pressed && prev_W_pressed) {
+    if (!W_pressed && prev_W_pressed)
+    {
         character.processInput('W', false); // 松开W键，传入键值'W'和false
     }
 
-    if (S_pressed && !prev_S_pressed) {
+    if (S_pressed && !prev_S_pressed)
+    {
         character.processInput('S', true); // 按下S键，传入键值'S'和true
     }
-    if (!S_pressed && prev_S_pressed) {
+    if (!S_pressed && prev_S_pressed)
+    {
         character.processInput('S', false); // 松开S键，传入键值'S'和false
     }
 
-    if (A_pressed && !prev_A_pressed) {
+    if (A_pressed && !prev_A_pressed)
+    {
         character.processInput('A', true); // 按下A键，传入键值'A'和true
     }
-    if (!A_pressed && prev_A_pressed) {
+    if (!A_pressed && prev_A_pressed)
+    {
         character.processInput('A', false); // 松开A键，传入键值'A'和false
     }
 
-    if (D_pressed && !prev_D_pressed) {
+    if (D_pressed && !prev_D_pressed)
+    {
         character.processInput('D', true); // 按下D键，传入键值'D'和true
     }
-    if (!D_pressed && prev_D_pressed) {
+    if (!D_pressed && prev_D_pressed)
+    {
         character.processInput('D', false); // 松开D键，传入键值'D'和false
     }
 
-    if (R_pressed && !prev_R_pressed) {
+    if (R_pressed && !prev_R_pressed)
+    {
         character.processInput('R', true); // 按下R键，传入键值'R'和true
     }
-    if (!R_pressed && prev_R_pressed) {
+    if (!R_pressed && prev_R_pressed)
+    {
         character.processInput('R', false); // 松开R键，传入键值'R'和false
     }
 
-    if (shoot_pressed && !prev_shoot_pressed) {
+    if (shoot_pressed && !prev_shoot_pressed)
+    {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+        {
+            Ray* ray = new Ray(camera.Position, glm::normalize(camera.Front));
+            Cube* hit = ray->RayCastCubes(objects);
+            if (dynamic_cast<Trap*>(hit)) ((Trap*)hit)->TakeDamage(4);
+            if (dynamic_cast<Machine*>(hit)) ((Machine*)hit)->TakeDamage(2);
+            if (dynamic_cast<Bullet*>(hit)) ((Bullet*)hit)->TakeDamage(10);
+
+            fire_counter = 0;
+        }
     }
-    if (!shoot_pressed && prev_shoot_pressed) {
+    if (!shoot_pressed && prev_shoot_pressed)
+    {
+        //松开左键
     }
 
     // 保存当前帧的按键状态以供下一帧使用
@@ -433,13 +485,13 @@ void processInput(GLFWwindow *window, Character &character) {
 
     // 鼠标输入
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
-        camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, 0), true, deltaTime);
+        camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, -1.2f), true, deltaTime);
     else
-        camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, 0), false, deltaTime);
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
-        camera.ProcessMouseInput(M_RIGHT, glm::vec3(0, 0, 0), true, deltaTime);
+        camera.ProcessMouseInput(M_LEFT, glm::vec3(0, 0, -1.2f), false, deltaTime);
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS && character.currentState == character.STANDING)
+        camera.ProcessMouseInput(M_RIGHT, glm::vec3(character.getPosition().x, 0, -1.2f), true, deltaTime);
     else
-        camera.ProcessMouseInput(M_RIGHT, glm::vec3(0, 0, 0), false, deltaTime);
+        camera.ProcessMouseInput(M_RIGHT, glm::vec3(character.getPosition().x, 0, -1.2f), false, deltaTime);
 
     // 测试键
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)

@@ -32,21 +32,35 @@ public:
 	vector<Mesh>    meshes;
 	string directory;
 	bool gammaCorrection;
+	glm::mat4 transform = glm::mat4(1.0f);  // 初始化为单位矩阵
 
+	void setTransform(const glm::mat4& newTransform) {
+		transform = newTransform;
+	}
 
 
 	// constructor, expects a filepath to a 3D model.
 	Model(string const& path, bool gamma = false) : gammaCorrection(gamma)
 	{
+		// Load the model
 		loadModel(path);
+
+		// Set initial transformation
+		transform = glm::mat4(1.0f); // Start with the identity matrix
+		transform = glm::translate(transform, glm::vec3(0.0f, -1.0f, 0.0f)); // Translate it down so it's at the center of the scene
+		transform = glm::scale(transform, glm::vec3(0.5f, 0.5f, -0.5f)); // It's a bit too big for our scene, so scale it down
 	}
 
+
 	// draws the model, and thus all its meshes
-	void Draw(Shader& shader) 
+	void Draw(Shader& shader)
 	{
+		shader.use();  // 确保着色器已经激活
+		shader.setMat4("model", transform);  // 更新着色器中的模型变换矩阵
 		for (unsigned int i = 0; i < meshes.size(); i++)
 			meshes[i].Draw(shader);
 	}
+
 
 
 	auto& GetBoneInfoMap() { return m_BoneInfoMap; }

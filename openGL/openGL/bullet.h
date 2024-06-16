@@ -15,7 +15,7 @@ public:
     {
         this->health = health;
         this->velocity = glm::vec3(0, 0, 5);
-        this->localScale = glm::vec3(0.1, 0.1f, 0.1f);
+        this->localScale = glm::vec3(0.3f, 0.3f, 0);
         this->color = glm::vec4(0.8, 0, 0, 1);
     }
 

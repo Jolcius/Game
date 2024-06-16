@@ -15,6 +15,7 @@ public:
         AIMING,      // Ãé×¼×´Ì¬
         CROUCHING,   // ¶×·ü×´Ì¬
         RELOADING,   // ×°Ìî×´Ì¬
+        SHOOTING,    // Éä»÷×´Ì¬
         MOVING_LEFT, // Ïò×óÒÆ¶¯
         MOVING_RIGHT,// ÏòÓÒÒÆ¶¯
         JUMPING,     // ÌøÔ¾×´Ì¬
@@ -35,11 +36,13 @@ public:
 
     void processInput(int key, bool isPressed);
     void update(float deltaTime);
+    void updateModelTransform();
     void render(Shader& shader);
-
+    const std::string getStateName(State state);
     void onHit();
 
     void setPosition(glm::vec3 newPosition);
+    glm::vec3 getPosition() { return position; }
     void setTexture(unsigned int texID);
     void setScale(glm::vec3 newScale);
     void setColor(glm::vec4 newColor);
@@ -69,7 +72,7 @@ private:
     bool isInvincible;
     unsigned int texture_char;
     unsigned int VBO_char, VAO_char;
-    float moveDuration;
+    float moveDuration = 0.5f;
     float moveTimer;
 
     float groundLevel;
@@ -81,10 +84,9 @@ private:
     void shoot();
     void aim();
     void crouch();
-    void stopCrouch();
+    void stand();
     void reload();
-    void moveLeft();
-    void moveRight();
+    void move();
 
     void checkBounds();
     void updateInvincibility(float deltaTime);

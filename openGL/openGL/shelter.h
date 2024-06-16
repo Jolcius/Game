@@ -22,6 +22,7 @@ public:
 
     void TakeDamage(int damage)
     {
+        std::cout << "shelter take damage" << std::endl;
         health -= damage;
         if (health <= 0)
         {

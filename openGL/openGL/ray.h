@@ -8,6 +8,9 @@
 #include <vector>
 #include <iostream>
 #include "cube.h"
+#include "shelter.h"
+#include "trap.h"
+#include "machine.h"
 
 
 class Ray
@@ -35,7 +38,7 @@ public:
 
         // 检查 t_min 和 t_max 是否在 y 平面上相交
         if ((t_min > ty_max) || (ty_min > t_max))
-            return -1.0f;
+            return 100.0f;
 
         // 更新 t_min 和 t_max
         if (ty_min > t_min)
@@ -50,7 +53,7 @@ public:
 
         // 检查 t_min 和 t_max 是否在 z 平面上相交
         if ((t_min > tz_max) || (tz_min > t_max))
-            return -1.0f;
+            return 100.0f;
 
         // 更新 t_min 和 t_max
         if (tz_min > t_min)
@@ -60,7 +63,7 @@ public:
 
         // 如果 t_min 和 t_max 都为正，则射线与包围盒相交
         if (t_min < 0.0f && t_max < 0.0f)
-            return -1.0f;
+            return 100.0f;
 
         // 返回最近的相交点深度
         return t_min < 0.0f ? t_max : t_min;
@@ -68,7 +71,7 @@ public:
 
     Cube* RayCastCubes(std::vector<Cube*>& cubes)
     {
-        Cube* front_cube;
+        Cube* front_cube = nullptr;
         float min_z = 50;
         for (auto cube : cubes)
         {
@@ -77,13 +80,19 @@ public:
             glm::vec3 high_P = glm::vec3(pos.x + scale.x * 0.5f, pos.y + scale.y * 0.5f, pos.z + scale.z * 0.5f);
             glm::vec3 low_P = glm::vec3(pos.x - scale.x * 0.5f, pos.y - scale.y * 0.5f, pos.z - scale.z * 0.5f);
             float z = this->RayCast(high_P, low_P);
+
             if (z < min_z)
             {
-                min_z = z;
-                front_cube = cube;
+                if (dynamic_cast<Trap*>(cube) || dynamic_cast<Machine*>(cube))
+                {
+                    std::cout << "Ray hit" << std::endl;
+                    min_z = z;
+                    front_cube = cube;
+                }
+                
             }
         }
-        std::cout << "Ray hit." << std::endl;
+        return front_cube;
     }
 
 private:

@@ -182,7 +182,7 @@ public:
                 }
                 if (!down)
                 {
-                    if (abs(target.x - Position.x) > 0.1f || target.z - Position.z > 0.1f)
+                    if (abs(Original_Pos.x - Position.x) > 0.1f || Original_Pos.z - Position.z > 0.1f)
                     {
                         Position -= dir * MovementSpeed * deltaTime;
                         _viewLock = true;

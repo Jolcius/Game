@@ -50,7 +50,7 @@ unsigned int fragmentShader;
 // 全局物体
 vector<Cube*> objects;
 
-int fire_counter = 100;	// 枪口火焰渲染计数器
+int fire_counter = 100; // 枪口火焰渲染计数器
 
 int main()
 {
@@ -61,7 +61,6 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Preview", NULL, NULL);
-
 
     if (window == NULL)
     {
@@ -76,6 +75,10 @@ int main()
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
+    }
+    else
+    {
+        std::cout << "GLAD initialized successfully" << std::endl;
     }
 
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -93,6 +96,8 @@ int main()
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+
+    std::cout << "Generated VAO: " << VAO << " VBO: " << VBO << std::endl;
 
     glBindVertexArray(VAO);
 
@@ -122,11 +127,13 @@ int main()
     // 枪口火焰
     Cube* fire = new Cube(glm::vec3(0, 0, 0));
     Texture_cube* fire_tex = new Texture_cube(GAME_HOME "assets/textures/fire.png");
+    std::cout << "Loading fire texture from: " << GAME_HOME "assets/textures/fire.png" << std::endl;
     fire->setTexture(*fire_tex);
     fire->setScale(glm::vec3(1, 1, 0));
     // 准星
     Cube* aim = new Cube(glm::vec3(0, 0, -1));
     Texture_cube* aim_tex = new Texture_cube(GAME_HOME "assets/textures/aim.png");
+    std::cout << "Loading aim texture from: " << GAME_HOME "assets/textures/aim.png" << std::endl;
     aim->setTexture(*aim_tex);
     aim->setScale(glm::vec3(1, 1, 0));
 
@@ -153,6 +160,7 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        std::cout << objects.size() << std::endl;
 
         // 模型着色器配置参数
         modelShader.use();
@@ -165,12 +173,6 @@ int main()
         for (int i = 0; i < transforms.size(); ++i)
             modelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
 
-        // 渲染已加载模型
-        glm::mat4 model = glm::mat4(1.0f);
-        modelShader.setMat4("model", model);
-        character.model->Draw(modelShader);
-
-        //cout << "frame" << endl;
 
         // 设置着色器参数
         shader.use();
@@ -180,7 +182,12 @@ int main()
         int projectionLoc = glGetUniformLocation(shader.ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        glBindVertexArray(VAO);
+        // Debug: 检查 uniform 变量是否正确设置
+        glm::mat4 model = glm::mat4(1.0f);
+        int modelLoc = glGetUniformLocation(shader.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        character.model->Draw(modelShader);
 
         // LevelManager生成敌人
         _lm.GenerateEnemy();
@@ -206,7 +213,6 @@ int main()
         // 画出Objects
         for (auto& obj : objects)
         {
-
             // 绑定纹理
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, obj->getTexture());
@@ -218,7 +224,6 @@ int main()
             model = glm::rotate(model, glm::radians(obj->getRot().z), glm::vec3(0.0f, 0.0f, 1.0f));
             model = glm::scale(model, obj->getScale());
 
-
             // 向顶点着色器输入model矩阵
             int modelLoc = glGetUniformLocation(shader.ID, "model");
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -228,7 +233,23 @@ int main()
             int colorLoc = glGetUniformLocation(shader.ID, "color");
             glUniform4f(colorLoc, color.x, color.y, color.z, color.w);
 
+            glBindVertexArray(VAO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+            // Debug: 检查顶点数据
+            float* vertexData = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+            if (vertexData != nullptr) {
+                for (int i = 0; i < 36 * 5; i++) { // 假设每个顶点有 5 个属性（3 个位置 + 2 个纹理坐标），36 个顶点
+                    std::cout << vertexData[i] << " ";
+                    if ((i + 1) % 5 == 0) std::cout << std::endl;
+                }
+                glUnmapBuffer(GL_ARRAY_BUFFER);
+            } else {
+                std::cout << "Failed to map buffer for debugging." << std::endl;
+            }
+
             glDrawArrays(GL_TRIANGLES, 0, 36);
+
 
             // 处理物体移动
             obj->setPos(obj->getPos() + obj->getVelocity() * deltaTime);
@@ -257,7 +278,6 @@ int main()
                     }
                 }
             }
-
         }
 
         // 处理Objects删除
@@ -271,7 +291,7 @@ int main()
         }
 
         // 渲染UI
-        glDisable(GL_DEPTH_TEST);	//关闭深度测试
+        glDisable(GL_DEPTH_TEST); //关闭深度测试
         if (camera.Position == glm::vec3(character.getPosition().x, 0, -1.2f))
         {
             if (fire_counter <= 2)
@@ -297,7 +317,7 @@ int main()
                 glDrawArrays(GL_TRIANGLES, 0, 36);
                 fire_counter++;
             }
-            else if (fire_counter >= 1e6) fire_counter = 1e6;	// 防止越界
+            else if (fire_counter >= 1e6) fire_counter = 1e6; // 防止越界
             // 绑定纹理
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, aim->getTexture());
@@ -320,8 +340,7 @@ int main()
         }
         glEnable(GL_DEPTH_TEST);
 
-        character.render(shader);  // 传递 Shader 对象的引用
-
+        character.render(shader); // 传递 Shader 对象的引用
 
         // 交换缓冲，调用事件
         glfwSwapBuffers(window);
@@ -388,7 +407,6 @@ void processInput(GLFWwindow* window, Character& character)
 
     static bool shoot_pressed = false;
     static bool prev_shoot_pressed = false;
-
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);

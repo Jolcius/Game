@@ -91,9 +91,6 @@ private:
     void checkBounds();
     void updateInvincibility(float deltaTime);
 
-    const glm::vec3 leftPosition;
-    const glm::vec3 middlePosition;
-    const glm::vec3 rightPosition;
     float currentPosition;
     glm::vec3 targetPosition;
     glm::vec3 calculateTargetPosition();

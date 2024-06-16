@@ -6,12 +6,9 @@
 #include <stb_image.h>
 
 Character::Character(const std::string& modelPath):
-        groundLevel(-0.5f),
         position(0.0f, -0.5f, -1.0f),
         scale(1.8f),
         currentState(STANDING),
-        velocityY(0.0f),
-        gravity(50.0f),
         isInvincible(false),
         invincibleTimer(0.0f)
 {
@@ -92,7 +89,6 @@ void Character::processInput(int key, bool isPressed) {
         // 在播放新动画前保存当前动画和状态
         if (currentState == STANDING || currentState == CROUCHING) {
             m_PreviousAnimation = animator->GetCurrentAnimation();
-            m_PreviousState = currentState;
         }
         switch (key) {
             case 'A':
@@ -147,18 +143,7 @@ void Character::update(float deltaTime) {
     // 检查当前动画是否完成且不是循环动画
     if (!animator->GetCurrentAnimation()->loop && animator->IsAnimationFinished() && currentState != MOVING_LEFT && currentState != MOVING_RIGHT) {
         // 恢复到前一个状态和动画
-        currentState = m_PreviousState;
         animator->PlayAnimation(m_PreviousAnimation);
-    }
-
-    if (currentState == MOVING_LEFT || currentState == MOVING_RIGHT) {
-        moveTimer += deltaTime;
-        if (moveTimer >= 0.55f) {
-            position = targetPosition;
-            currentState = STANDING;
-            moveTimer = 0.0f;
-            stand();
-        }
     }
 
     std::cout << "位置: " << position.x << ", " << position.y << ", " << position.z << std::endl;
@@ -184,7 +169,6 @@ void Character::jump() {
     Animation* Jumping = new Animation(GAME_HOME "assets/path/Jumping.dae", model, false);
     animator->PlayAnimation(Jumping);
     currentState = JUMPING;
-    velocityY = 10.0f; // 假设跳跃的初始速度
     std::cout << "跳跃" << std::endl;
 }
 
@@ -260,16 +244,9 @@ glm::vec3 Character::calculateTargetPosition() {
 
 void Character::move() {
     targetPosition = calculateTargetPosition();  // 计算新的目标位置
-    moveTimer = 0.0f;  // 重置移动计时器
     currentState = (facingDirection == LEFT ? MOVING_LEFT : MOVING_RIGHT);
     Animation* animation = new Animation((facingDirection == LEFT ? GAME_HOME "assets/path/Strafe Left.dae" : GAME_HOME "assets/path/Strafe Right.dae"), model, false);
     animator->PlayAnimation(animation);
-}
-
-
-void Character::checkBounds() {
-    if (position.x < leftPosition.x) position.x = leftPosition.x;
-    if (position.x > rightPosition.x) position.x = rightPosition.x;
 }
 
 void Character::updateInvincibility(float deltaTime) {

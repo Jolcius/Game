@@ -1,7 +1,10 @@
-游戏项目策划案
+![1](https://github.com/user-attachments/assets/b7b6778a-795d-4f13-8070-cacf5055c40b)
 
-Github仓库：
-https://github.com/Jolcius/Game.git
+![2](https://github.com/user-attachments/assets/631be374-6e43-47bf-ae57-c88041bd55b2)
+
+![3](https://github.com/user-attachments/assets/fccabe3e-b580-48cc-bc47-31ebbccbeeb8)
+
+![4](https://github.com/user-attachments/assets/ec1d32ab-9689-4606-b4da-3d074cec3a17)
 
 游戏类型：TPS（第三人称射击
 定点打靶，躲避障碍，肃清敌人后过关（类似魂斗罗第二关玩法
@@ -65,11 +68,6 @@ UI：
 - 瞄准与还原时，摄像机的位置与拍摄方向的移动尽量实现平滑过渡，过渡时间暂定0.2s。
 - 主角初始坐标(0, 0, 0)，并可在x轴方向上移动，移动范围$$[-5, 5]$$
 - 为了省力，取消物理系统的开发，碰撞检测采用位置判断，当敌方子弹或陷阱移动到$z=0$的位置时判断是否与主角碰撞。（类似音游）
-
-分工
-1. 第一周
-- 引擎(Assmp)：音效播放的实现，模型，着色器，帧动画，判断射线与包围盒相交
-- 摄像头控制
 - 主角控制，主角被击中需要有特效（闪红帧）和无敌帧
 - 敌人与障碍物类（可继承Cube），敌人或障碍物被玩家击中时需要有特效（闪白帧）
 - 美术和音效素材
